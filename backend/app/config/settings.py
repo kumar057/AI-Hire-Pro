@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     APP_ENV: Literal["local", "development", "staging", "production", "test"] = "local"
     APP_VERSION: str = "0.1.0"
     API_PREFIX: str = "/api/v1"
-    DEBUG: bool = False
+    DEBUG: bool = Field(default=False, validation_alias="APP_DEBUG")
     ENABLE_DOCS: bool = True
     LOG_LEVEL: str = "INFO"
 
@@ -22,6 +22,10 @@ class Settings(BaseSettings):
     JWT_SECRET_KEY: str = Field(default="change-me-in-local-dev", min_length=16)
     JWT_ALGORITHM: str = "HS256"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
+    JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 30
+    PASSWORD_RESET_TOKEN_EXPIRE_MINUTES: int = 15
+    AUTH_RATE_LIMIT_MAX_ATTEMPTS: int = 8
+    AUTH_RATE_LIMIT_WINDOW_SECONDS: int = 60
 
     CORS_ORIGINS: list[str] = ["http://localhost:5173"]
 
@@ -47,7 +51,7 @@ class Settings(BaseSettings):
         return [origin.strip() for origin in value.split(",") if origin.strip()]
 
     @model_validator(mode="after")
-    def validate_production_settings(self) -> "Settings":
+    def validate_production_settings(self) -> Settings:
         unsafe_secrets = {"change-me", "replace-me", "change-me-in-local-dev"}
         if self.APP_ENV == "production" and self.JWT_SECRET_KEY in unsafe_secrets:
             raise ValueError("JWT_SECRET_KEY must be set to a strong secret in production")
