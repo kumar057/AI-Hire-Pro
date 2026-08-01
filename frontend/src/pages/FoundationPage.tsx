@@ -4,7 +4,7 @@ import { FiBox, FiDatabase, FiGitBranch, FiServer } from 'react-icons/fi';
 import { pageTransition } from '@/animations/pageTransitions';
 import { StatusBadge } from '@/components/StatusBadge';
 import { APP_NAME } from '@/constants/app';
-import { useAppConfig } from '@/context/AppConfigContext';
+import { useAppConfig } from '@/hooks/useAppConfig';
 import { useHealthCheck } from '@/hooks/useHealthCheck';
 
 const foundationAreas = [
@@ -86,4 +86,3 @@ export function FoundationPage() {
     </motion.section>
   );
 }
-

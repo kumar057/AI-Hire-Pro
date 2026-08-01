@@ -1,13 +1,12 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 
-import { FoundationPage } from '@/pages/FoundationPage';
+import { LandingPage } from '@/pages/LandingPage';
 
 export function AppRoutes() {
   return (
     <Routes>
-      <Route element={<FoundationPage />} path="/" />
+      <Route element={<LandingPage />} path="/" />
       <Route element={<Navigate replace to="/" />} path="*" />
     </Routes>
   );
 }
-
