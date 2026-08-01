@@ -30,6 +30,47 @@ const ProfileSetupPage = lazy(() =>
 const DashboardPage = lazy(() =>
   import('@/pages/auth/DashboardPage').then((module) => ({ default: module.DashboardPage })),
 );
+const CandidateDashboardLayout = lazy(() =>
+  import('@/layouts/CandidateDashboardLayout').then((module) => ({
+    default: module.CandidateDashboardLayout,
+  })),
+);
+const CandidateDashboardHome = lazy(() =>
+  import('@/pages/candidate/CandidateDashboardHome').then((module) => ({
+    default: module.CandidateDashboardHome,
+  })),
+);
+const MyProfilePage = lazy(() =>
+  import('@/pages/candidate/MyProfilePage').then((module) => ({ default: module.MyProfilePage })),
+);
+const ResumePage = lazy(() =>
+  import('@/pages/candidate/ResumePage').then((module) => ({ default: module.ResumePage })),
+);
+const JobsPage = lazy(() =>
+  import('@/pages/candidate/JobsPage').then((module) => ({ default: module.JobsPage })),
+);
+const SavedJobsPage = lazy(() =>
+  import('@/pages/candidate/SavedJobsPage').then((module) => ({ default: module.SavedJobsPage })),
+);
+const AppliedJobsPage = lazy(() =>
+  import('@/pages/candidate/AppliedJobsPage').then((module) => ({
+    default: module.AppliedJobsPage,
+  })),
+);
+const NotificationsPage = lazy(() =>
+  import('@/pages/candidate/NotificationsPage').then((module) => ({
+    default: module.NotificationsPage,
+  })),
+);
+const MessagesPage = lazy(() =>
+  import('@/pages/candidate/MessagesPage').then((module) => ({ default: module.MessagesPage })),
+);
+const SettingsPage = lazy(() =>
+  import('@/pages/candidate/SettingsPage').then((module) => ({ default: module.SettingsPage })),
+);
+const HelpPage = lazy(() =>
+  import('@/pages/candidate/HelpPage').then((module) => ({ default: module.HelpPage })),
+);
 
 function PageLoader() {
   return (
@@ -56,7 +97,18 @@ export function AppRoutes() {
           <Route element={<ProfileSetupPage />} path="/profile/setup" />
         </Route>
         <Route element={<ProtectedRoute allowedRoles={['candidate']} />}>
-          <Route element={<DashboardPage role="candidate" />} path="/candidate/dashboard" />
+          <Route element={<CandidateDashboardLayout />} path="/candidate/dashboard">
+            <Route element={<CandidateDashboardHome />} index />
+            <Route element={<MyProfilePage />} path="profile" />
+            <Route element={<ResumePage />} path="resume" />
+            <Route element={<JobsPage />} path="jobs" />
+            <Route element={<SavedJobsPage />} path="saved-jobs" />
+            <Route element={<AppliedJobsPage />} path="applied-jobs" />
+            <Route element={<NotificationsPage />} path="notifications" />
+            <Route element={<MessagesPage />} path="messages" />
+            <Route element={<SettingsPage />} path="settings" />
+            <Route element={<HelpPage />} path="help" />
+          </Route>
         </Route>
         <Route element={<ProtectedRoute allowedRoles={['company']} />}>
           <Route element={<DashboardPage role="company" />} path="/company/dashboard" />

@@ -204,6 +204,43 @@ def test_profile_update_requires_authentication(client: TestClient) -> None:
     assert authenticated.json()["phone"] == "+15559876543"
 
 
+def test_candidate_dashboard_placeholder_requires_candidate_role(client: TestClient) -> None:
+    auth_payload = register_candidate(client)
+    asyncio.run(seed_admin(client))
+    admin_login = client.post(
+        "/api/v1/auth/login",
+        json={"email": "admin@example.com", "password": "AdminSecure123!"},
+    )
+
+    unauthenticated = client.get("/api/v1/candidate/dashboard")
+    candidate = client.get(
+        "/api/v1/candidate/dashboard",
+        headers={"Authorization": f"Bearer {auth_payload['access_token']}"},
+    )
+    admin = client.get(
+        "/api/v1/candidate/dashboard",
+        headers={"Authorization": f"Bearer {admin_login.json()['access_token']}"},
+    )
+
+    assert unauthenticated.status_code == 401
+    assert candidate.status_code == 200
+    assert candidate.json()["summary"]["profile_completion"] == 75
+    assert admin.status_code == 403
+
+
+def test_candidate_profile_placeholder_requires_candidate_role(client: TestClient) -> None:
+    auth_payload = register_candidate(client)
+
+    response = client.get(
+        "/api/v1/candidate/profile",
+        headers={"Authorization": f"Bearer {auth_payload['access_token']}"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["email"] == "candidate@example.com"
+    assert response.json()["profile_completion"] == 75
+
+
 def test_refresh_token_rotation_revokes_old_token(client: TestClient) -> None:
     auth_payload = register_candidate(client)
     old_refresh_token = auth_payload["refresh_token"]
