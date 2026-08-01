@@ -241,6 +241,47 @@ def test_candidate_profile_placeholder_requires_candidate_role(client: TestClien
     assert response.json()["profile_completion"] == 75
 
 
+def test_candidate_profile_placeholder_update_returns_dummy_payload(client: TestClient) -> None:
+    auth_payload = register_candidate(client)
+    profile_payload = {
+        "first_name": "Ava",
+        "last_name": "Stone",
+        "headline": "Senior Frontend Engineer",
+        "avatar_url": None,
+        "email": "candidate@example.com",
+        "phone": "+15551234567",
+        "address_line": "100 Market Street",
+        "city": "San Francisco",
+        "state": "California",
+        "country": "United States",
+        "postal_code": "94105",
+        "date_of_birth": "1995-04-12",
+        "gender": "Female",
+        "bio": "Building polished product experiences.",
+        "skills": ["React", "TypeScript"],
+        "education": ["B.S. Computer Science"],
+        "work_experience": ["Frontend Engineer - SignalWorks"],
+        "certifications": ["AWS Cloud Practitioner"],
+        "languages": ["English"],
+        "portfolio_url": "https://portfolio.example.com",
+        "github_url": "https://github.com/ava",
+        "linkedin_url": "https://www.linkedin.com/in/ava",
+        "website_url": "https://ava.example.com",
+        "profile_completion": 90,
+    }
+
+    response = client.put(
+        "/api/v1/candidate/profile",
+        headers={"Authorization": f"Bearer {auth_payload['access_token']}"},
+        json=profile_payload,
+    )
+
+    assert response.status_code == 200
+    assert response.json()["uuid"] == auth_payload["user"]["uuid"]
+    assert response.json()["headline"] == "Senior Frontend Engineer"
+    assert response.json()["profile_completion"] == 90
+
+
 def test_refresh_token_rotation_revokes_old_token(client: TestClient) -> None:
     auth_payload = register_candidate(client)
     old_refresh_token = auth_payload["refresh_token"]

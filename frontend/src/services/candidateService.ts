@@ -1,8 +1,9 @@
 import { apiClient } from '@/services/apiClient';
+import type { CandidateDashboardResponse } from '@/types/candidateDashboard';
 import type {
-  CandidateDashboardResponse,
+  CandidateProfileApiPayload,
   CandidateProfileResponse,
-} from '@/types/candidateDashboard';
+} from '@/types/candidateProfile';
 
 export const candidateService = {
   async getDashboard() {
@@ -12,6 +13,11 @@ export const candidateService = {
 
   async getProfile() {
     const response = await apiClient.get<CandidateProfileResponse>('/candidate/profile');
+    return response.data;
+  },
+
+  async updateProfile(payload: CandidateProfileApiPayload) {
+    const response = await apiClient.put<CandidateProfileResponse>('/candidate/profile', payload);
     return response.data;
   },
 };
