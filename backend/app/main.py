@@ -2,8 +2,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config.settings import get_settings
+from app.middleware.rate_limit import AuthRateLimitMiddleware
 from app.middleware.request_id import RequestIDMiddleware
-from app.routers import health
+from app.routers import auth, health, users
 from app.utils.logging import configure_logging
 
 
@@ -21,6 +22,7 @@ def create_app() -> FastAPI:
     )
 
     app.add_middleware(RequestIDMiddleware)
+    app.add_middleware(AuthRateLimitMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.CORS_ORIGINS,
@@ -29,10 +31,11 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
+    app.include_router(auth.router, prefix=settings.API_PREFIX, tags=["auth"])
     app.include_router(health.router, prefix=settings.API_PREFIX, tags=["health"])
+    app.include_router(users.router, prefix=settings.API_PREFIX, tags=["users"])
 
     return app
 
 
 app = create_app()
-

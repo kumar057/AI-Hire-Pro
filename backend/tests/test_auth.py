@@ -1,0 +1,284 @@
+from __future__ import annotations
+
+import asyncio
+from datetime import timedelta
+
+from fastapi.testclient import TestClient
+from sqlalchemy import select
+
+from app.auth.jwt import TokenType, create_password_reset_token, create_token
+from app.auth.password import hash_password
+from app.models.user import User, UserRole
+
+
+def candidate_payload(email: str = "candidate@example.com") -> dict[str, object]:
+    return {
+        "first_name": "Ava",
+        "last_name": "Stone",
+        "email": email,
+        "phone": "+15551234567",
+        "password": "SecurePass123!",
+        "role": "candidate",
+    }
+
+
+def company_payload(email: str = "company@example.com") -> dict[str, object]:
+    return {
+        "first_name": "Morgan",
+        "last_name": "Reed",
+        "email": email,
+        "phone": "+15557654321",
+        "password": "SecurePass123!",
+        "role": "company",
+        "company": {
+            "company_name": "SignalWorks",
+            "website": "https://signalworks.example",
+            "industry": "SaaS",
+            "company_size": "51-200",
+            "location": "Remote",
+            "description": "Hiring platform partner.",
+        },
+    }
+
+
+def register_candidate(client: TestClient) -> dict[str, object]:
+    response = client.post("/api/v1/auth/register", json=candidate_payload())
+    assert response.status_code == 201
+    return response.json()
+
+
+async def get_user_by_email(client: TestClient, email: str) -> User:
+    session_factory = client.app.state.test_session_factory
+    async with session_factory() as session:
+        result = await session.execute(select(User).where(User.email == email))
+        user = result.scalar_one()
+        session.expunge(user)
+        return user
+
+
+async def seed_admin(client: TestClient) -> None:
+    session_factory = client.app.state.test_session_factory
+    async with session_factory() as session:
+        session.add(
+            User(
+                first_name="Root",
+                last_name="Admin",
+                email="admin@example.com",
+                password_hash=hash_password("AdminSecure123!"),
+                role=UserRole.ADMIN,
+                is_verified=True,
+            )
+        )
+        await session.commit()
+
+
+def test_register_candidate(client: TestClient) -> None:
+    payload = register_candidate(client)
+
+    assert payload["access_token"]
+    assert payload["refresh_token"]
+    assert payload["user"]["email"] == "candidate@example.com"
+    assert payload["user"]["role"] == "candidate"
+    assert "jobs:read" in payload["user"]["permissions"]
+
+
+def test_register_company_creates_company_profile(client: TestClient) -> None:
+    response = client.post("/api/v1/auth/register", json=company_payload())
+
+    assert response.status_code == 201
+    payload = response.json()
+    assert payload["user"]["role"] == "company"
+    assert payload["user"]["company"]["company_name"] == "SignalWorks"
+    assert "company:manage" in payload["user"]["permissions"]
+
+
+def test_register_rejects_public_admin_role(client: TestClient) -> None:
+    payload = candidate_payload("admin-register@example.com")
+    payload["role"] = "admin"
+
+    response = client.post("/api/v1/auth/register", json=payload)
+
+    assert response.status_code == 422
+
+
+def test_register_rejects_weak_password(client: TestClient) -> None:
+    payload = candidate_payload("weak@example.com")
+    payload["password"] = "password"
+
+    response = client.post("/api/v1/auth/register", json=payload)
+
+    assert response.status_code == 422
+
+
+def test_register_rejects_duplicate_email(client: TestClient) -> None:
+    register_candidate(client)
+
+    response = client.post("/api/v1/auth/register", json=candidate_payload())
+
+    assert response.status_code == 409
+    assert response.json()["detail"] == "Email is already registered"
+
+
+def test_password_hash_is_not_plain_text(client: TestClient) -> None:
+    register_candidate(client)
+
+    user = asyncio.run(get_user_by_email(client, "candidate@example.com"))
+
+    assert user.password_hash != "SecurePass123!"
+    assert user.password_hash.startswith("$2b$")
+
+
+def test_login_returns_jwt_tokens(client: TestClient) -> None:
+    register_candidate(client)
+
+    response = client.post(
+        "/api/v1/auth/login",
+        json={"email": "candidate@example.com", "password": "SecurePass123!"},
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["access_token"]
+    assert payload["refresh_token"]
+    assert payload["token_type"] == "bearer"
+
+
+def test_admin_login_for_seeded_admin(client: TestClient) -> None:
+    asyncio.run(seed_admin(client))
+
+    response = client.post(
+        "/api/v1/auth/login",
+        json={"email": "admin@example.com", "password": "AdminSecure123!"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["user"]["role"] == "admin"
+    assert "platform:admin" in response.json()["user"]["permissions"]
+
+
+def test_protected_route_requires_valid_jwt(client: TestClient) -> None:
+    auth_payload = register_candidate(client)
+
+    missing_token = client.get("/api/v1/users/me")
+    invalid_token = client.get("/api/v1/users/me", headers={"Authorization": "Bearer invalid"})
+    valid_token = client.get(
+        "/api/v1/users/me",
+        headers={"Authorization": f"Bearer {auth_payload['access_token']}"},
+    )
+
+    assert missing_token.status_code == 401
+    assert invalid_token.status_code == 401
+    assert valid_token.status_code == 200
+    assert valid_token.json()["email"] == "candidate@example.com"
+
+
+def test_protected_route_rejects_expired_jwt(client: TestClient) -> None:
+    auth_payload = register_candidate(client)
+    expired_token, _ = create_token(
+        auth_payload["user"]["uuid"],
+        TokenType.ACCESS,
+        expires_delta=timedelta(seconds=-1),
+    )
+
+    response = client.get(
+        "/api/v1/users/me",
+        headers={"Authorization": f"Bearer {expired_token}"},
+    )
+
+    assert response.status_code == 401
+
+
+def test_profile_update_requires_authentication(client: TestClient) -> None:
+    auth_payload = register_candidate(client)
+
+    unauthenticated = client.patch("/api/v1/users/me", json={"first_name": "Eve"})
+    authenticated = client.patch(
+        "/api/v1/users/me",
+        headers={"Authorization": f"Bearer {auth_payload['access_token']}"},
+        json={"first_name": "Eve", "phone": "+15559876543"},
+    )
+
+    assert unauthenticated.status_code == 401
+    assert authenticated.status_code == 200
+    assert authenticated.json()["first_name"] == "Eve"
+    assert authenticated.json()["phone"] == "+15559876543"
+
+
+def test_refresh_token_rotation_revokes_old_token(client: TestClient) -> None:
+    auth_payload = register_candidate(client)
+    old_refresh_token = auth_payload["refresh_token"]
+
+    first_refresh = client.post(
+        "/api/v1/auth/refresh", json={"refresh_token": old_refresh_token}
+    )
+    second_refresh = client.post(
+        "/api/v1/auth/refresh", json={"refresh_token": old_refresh_token}
+    )
+
+    assert first_refresh.status_code == 200
+    assert first_refresh.json()["refresh_token"] != old_refresh_token
+    assert second_refresh.status_code == 401
+
+
+def test_access_token_cannot_be_used_as_refresh_token(client: TestClient) -> None:
+    auth_payload = register_candidate(client)
+
+    response = client.post(
+        "/api/v1/auth/refresh", json={"refresh_token": auth_payload["access_token"]}
+    )
+
+    assert response.status_code == 401
+
+
+def test_logout_revokes_refresh_token(client: TestClient) -> None:
+    auth_payload = register_candidate(client)
+    refresh_token = auth_payload["refresh_token"]
+
+    logout = client.post("/api/v1/auth/logout", json={"refresh_token": refresh_token})
+    refresh = client.post("/api/v1/auth/refresh", json={"refresh_token": refresh_token})
+
+    assert logout.status_code == 200
+    assert refresh.status_code == 401
+
+
+def test_forgot_password_returns_generic_message(client: TestClient) -> None:
+    register_candidate(client)
+
+    existing = client.post("/api/v1/auth/forgot-password", json={"email": "candidate@example.com"})
+    missing = client.post("/api/v1/auth/forgot-password", json={"email": "missing@example.com"})
+
+    assert existing.status_code == 200
+    assert missing.status_code == 200
+    assert existing.json() == missing.json()
+
+
+def test_reset_password_changes_password_and_blocks_replay(client: TestClient) -> None:
+    auth_payload = register_candidate(client)
+    user = asyncio.run(get_user_by_email(client, "candidate@example.com"))
+    reset_token = create_password_reset_token(user.uuid, user.password_hash)
+
+    reset = client.post(
+        "/api/v1/auth/reset-password",
+        json={"token": reset_token, "password": "NewSecurePass123!"},
+    )
+    old_login = client.post(
+        "/api/v1/auth/login",
+        json={"email": "candidate@example.com", "password": "SecurePass123!"},
+    )
+    new_login = client.post(
+        "/api/v1/auth/login",
+        json={"email": "candidate@example.com", "password": "NewSecurePass123!"},
+    )
+    replay = client.post(
+        "/api/v1/auth/reset-password",
+        json={"token": reset_token, "password": "AnotherSecure123!"},
+    )
+    old_refresh = client.post(
+        "/api/v1/auth/refresh", json={"refresh_token": auth_payload["refresh_token"]}
+    )
+
+    assert reset.status_code == 200
+    assert old_login.status_code == 401
+    assert new_login.status_code == 200
+    assert replay.status_code == 400
+    assert old_refresh.status_code == 401
