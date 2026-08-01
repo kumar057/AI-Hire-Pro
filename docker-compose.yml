@@ -1,0 +1,57 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: aihire-pro-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-aihire_pro}
+      POSTGRES_USER: ${POSTGRES_USER:-aihire}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aihire}
+    ports:
+      - "5432:5432"
+    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d:ro
+      - ./database/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-aihire} -d ${POSTGRES_DB:-aihire_pro}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    container_name: aihire-pro-backend
+    restart: unless-stopped
+    environment:
+      APP_ENV: local
+      DEBUG: "true"
+      ENABLE_DOCS: "true"
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-aihire}:${POSTGRES_PASSWORD:-aihire}@postgres:5432/${POSTGRES_DB:-aihire_pro}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-replace-this-with-a-long-random-secret}
+      CORS_ORIGINS: '["http://localhost:5173","http://localhost:4173","http://127.0.0.1:5173"]'
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend.Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8000/api/v1}
+    container_name: aihire-pro-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-4173}:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+

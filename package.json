@@ -1,0 +1,21 @@
+{
+  "name": "aihire-pro",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Enterprise AI-powered job portal monorepo foundation.",
+  "workspaces": [
+    "frontend"
+  ],
+  "scripts": {
+    "dev:frontend": "npm --workspace frontend run dev",
+    "build:frontend": "npm --workspace frontend run build",
+    "lint:frontend": "npm --workspace frontend run lint",
+    "format:frontend": "npm --workspace frontend run format",
+    "format:check": "npm --workspace frontend run format:check"
+  },
+  "engines": {
+    "node": ">=22.0.0",
+    "npm": ">=10.0.0"
+  }
+}
+
