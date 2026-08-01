@@ -282,6 +282,40 @@ def test_candidate_profile_placeholder_update_returns_dummy_payload(client: Test
     assert response.json()["profile_completion"] == 90
 
 
+def test_candidate_resume_placeholder_endpoints(client: TestClient) -> None:
+    auth_payload = register_candidate(client)
+    headers = {"Authorization": f"Bearer {auth_payload['access_token']}"}
+
+    current_resume = client.get("/api/v1/candidate/resume", headers=headers)
+    upload_resume = client.post(
+        "/api/v1/candidate/resume",
+        headers=headers,
+        files={"file": ("resume.pdf", b"%PDF-1.4 dummy", "application/pdf")},
+    )
+    delete_resume = client.delete("/api/v1/candidate/resume", headers=headers)
+
+    assert current_resume.status_code == 200
+    assert current_resume.json()["current_resume"]["file_name"] == "Ava-Stone-Resume.pdf"
+    assert upload_resume.status_code == 201
+    assert upload_resume.json()["current_resume"]["file_name"] == "resume.pdf"
+    assert upload_resume.json()["current_resume"]["file_type"] == "PDF"
+    assert delete_resume.status_code == 200
+    assert delete_resume.json()["current_resume"] is None
+
+
+def test_candidate_resume_upload_rejects_unsupported_file(client: TestClient) -> None:
+    auth_payload = register_candidate(client)
+
+    response = client.post(
+        "/api/v1/candidate/resume",
+        headers={"Authorization": f"Bearer {auth_payload['access_token']}"},
+        files={"file": ("resume.txt", b"plain text", "text/plain")},
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Only PDF and DOCX resumes are supported"
+
+
 def test_refresh_token_rotation_revokes_old_token(client: TestClient) -> None:
     auth_payload = register_candidate(client)
     old_refresh_token = auth_payload["refresh_token"]

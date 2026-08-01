@@ -32,3 +32,28 @@ class CandidateProfilePayload(BaseModel):
 
 class CandidateProfileResponse(CandidateProfilePayload):
     uuid: str
+
+
+class CandidateResumeFile(BaseModel):
+    id: str
+    file_name: str
+    file_type: str
+    file_size: int
+    upload_date: str
+    status: str
+    preview_url: str | None = None
+    download_url: str | None = None
+
+
+class CandidateResumeHistoryItem(BaseModel):
+    id: str
+    file_name: str
+    file_size: int
+    upload_date: str
+    action: str
+
+
+class CandidateResumeResponse(BaseModel):
+    current_resume: CandidateResumeFile | None
+    history: list[CandidateResumeHistoryItem]
+    supported_formats: list[str] = Field(default_factory=lambda: ["PDF", "DOCX"])
