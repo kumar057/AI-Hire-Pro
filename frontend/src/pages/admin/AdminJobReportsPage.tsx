@@ -1,0 +1,15 @@
+import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
+
+import { AdminPageHeader } from '@/components/AdminDashboard/AdminPageHeader';
+import { AdminSkeleton } from '@/components/AdminDashboard/AdminSkeleton';
+import { adminService } from '@/services/adminService';
+import type { CompanyViolation, JobReport, ModerationHistoryItem } from '@/types/moderation';
+
+export function AdminJobReportsPage() {
+  const [reports, setReports] = useState<JobReport[]>(); const [violations, setViolations] = useState<CompanyViolation[]>([]); const [history, setHistory] = useState<ModerationHistoryItem[]>([]); const [view, setView] = useState<'reports'|'violations'|'history'>('reports');
+  useEffect(() => { void Promise.all([adminService.getJobReports(), adminService.getCompanyViolations(), adminService.getModerationHistory()]).then(([reportData, violationData, historyData]) => { setReports(reportData.reports); setViolations(violationData); setHistory(historyData); }); }, []);
+  if (!reports) return <AdminSkeleton/>;
+  return <div className="mt-6 space-y-5"><AdminPageHeader description="Investigate reported listings, company policy violations, and moderator actions." title="Job Reports"/><div className="flex gap-2">{(['reports','violations','history'] as const).map((item) => <button className={`rounded-md px-4 py-2 text-sm font-bold ${view === item ? 'bg-rose-600 text-white' : 'border dark:border-white/10'}`} key={item} onClick={() => setView(item)}>{item === 'reports' ? 'Reported Jobs' : item === 'violations' ? 'Company Violations' : 'Moderation History'}</button>)}</div>{view === 'reports' && <Table headers={['Job','Company','Reason','Reporter','Report Date','Status','Resolution']} rows={reports.map((item) => [item.job_title,item.company,item.reason,item.reporter,item.report_date,item.status,item.resolution])}/>} {view === 'violations' && <Table headers={['Company','Violation','Severity','Date','Status']} rows={violations.map((item) => [item.company,item.violation,item.severity,item.date,item.status])}/>} {view === 'history' && <Table headers={['Job','Action','Moderator','Date','Note']} rows={history.map((item) => [item.job_title,item.action,item.moderator,new Date(item.occurred_at).toLocaleDateString(),item.note])}/>}</div>;
+}
+function Table({ headers, rows }: { headers: string[]; rows: string[][] }) { return <motion.div animate={{ opacity: 1, y: 0 }} className="overflow-x-auto rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-slate-900/70" initial={{ opacity: 0, y: 8 }}><table className="w-full min-w-[760px] text-left text-sm"><thead className="bg-slate-50 text-xs uppercase text-slate-500 dark:bg-white/5"><tr>{headers.map((header) => <th className="p-4" key={header}>{header}</th>)}</tr></thead><tbody>{rows.map((row,index) => <tr className="border-t border-slate-100 dark:border-white/10" key={`${row[0]}-${index}`}>{row.map((cell,cellIndex) => <td className="p-4" key={`${cell}-${cellIndex}`}>{cell}</td>)}</tr>)}</tbody></table></motion.div>; }

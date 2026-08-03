@@ -693,6 +693,68 @@ def test_admin_dashboard_placeholder_endpoints(client: TestClient) -> None:
     assert reports.status_code == 200
 
 
+def test_admin_job_moderation_workflow(client: TestClient) -> None:
+    asyncio.run(seed_admin(client))
+    login = client.post(
+        "/api/v1/auth/login",
+        json={"email": "admin@example.com", "password": "AdminSecure123!"},
+    )
+    headers = {"Authorization": f"Bearer {login.json()['access_token']}"}
+
+    jobs = client.get("/api/v1/admin/jobs", headers=headers)
+    detail = client.get("/api/v1/admin/jobs/mod-job-1", headers=headers)
+    approved = client.patch("/api/v1/admin/jobs/mod-job-1/approve", headers=headers)
+    rejected = client.patch(
+        "/api/v1/admin/jobs/mod-job-1/reject",
+        headers=headers,
+        json={"reason": "Policy mismatch"},
+    )
+    suspended = client.patch(
+        "/api/v1/admin/jobs/mod-job-1/suspend",
+        headers=headers,
+        json={"reason": "Company investigation"},
+    )
+    archived = client.patch("/api/v1/admin/jobs/mod-job-1/archive", headers=headers)
+    restored = client.patch("/api/v1/admin/jobs/mod-job-6/restore", headers=headers)
+    noted = client.post(
+        "/api/v1/admin/jobs/mod-job-1/notes",
+        headers=headers,
+        json={"content": "Verified salary and company details."},
+    )
+    reports = client.get("/api/v1/admin/job-reports", headers=headers)
+
+    assert jobs.status_code == 200
+    assert jobs.json()["total"] == 7
+    assert detail.status_code == 200
+    assert approved.json()["status"] == "Approved"
+    assert rejected.json()["status"] == "Rejected"
+    assert suspended.json()["status"] == "Suspended"
+    assert archived.json()["status"] == "Archived"
+    assert restored.json()["status"] == "Approved"
+    assert noted.json()["moderation_notes"][-1]["content"] == (
+        "Verified salary and company details."
+    )
+    assert reports.status_code == 200
+    assert reports.json()["reports"][0]["reason"]
+
+
+def test_non_admin_roles_cannot_access_job_moderation(client: TestClient) -> None:
+    candidate = register_candidate(client)
+    company = register_company(client)
+
+    candidate_response = client.get(
+        "/api/v1/admin/jobs",
+        headers={"Authorization": f"Bearer {candidate['access_token']}"},
+    )
+    company_response = client.get(
+        "/api/v1/admin/job-reports",
+        headers={"Authorization": f"Bearer {company['access_token']}"},
+    )
+
+    assert candidate_response.status_code == 403
+    assert company_response.status_code == 403
+
+
 def test_candidate_cannot_access_admin_dashboard(client: TestClient) -> None:
     auth_payload = register_candidate(client)
     response = client.get(

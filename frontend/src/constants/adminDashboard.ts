@@ -5,7 +5,8 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   { id: 'dashboard', label: 'Dashboard', to: '/admin/dashboard', icon: FiHome, end: true },
   { id: 'users', label: 'User Management', to: '/admin/dashboard/users', icon: FiUsers },
   { id: 'companies', label: 'Company Management', to: '/admin/dashboard/companies', icon: FiShield },
-  { id: 'jobs', label: 'Job Management', to: '/admin/dashboard/jobs', icon: FiBriefcase },
+  { id: 'jobs', label: 'Job Moderation', to: '/admin/dashboard/jobs', icon: FiBriefcase },
+  { id: 'job-reports', label: 'Job Reports', to: '/admin/dashboard/job-reports', icon: FiFlag },
   { id: 'applications', label: 'Applications', to: '/admin/dashboard/applications', icon: FiFileText },
   { id: 'reports', label: 'Reports', to: '/admin/dashboard/reports', icon: FiFlag },
   { id: 'analytics', label: 'Analytics', to: '/admin/dashboard/analytics', icon: FiBarChart2 },
@@ -28,4 +29,3 @@ export const ADMIN_METRICS = [
   { key: 'daily_active_users', label: 'Daily Active Users', icon: FiActivity, tone: 'bg-teal-50 text-teal-700 dark:bg-teal-300/10 dark:text-teal-200' },
   { key: 'system_health', label: 'System Health', icon: FiCpu, tone: 'bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-200' },
 ] as const;
-

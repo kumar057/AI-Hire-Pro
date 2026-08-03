@@ -181,6 +181,15 @@ const AdminDashboardHome = lazy(() =>
 const AdminManagementPage = lazy(() =>
   import('@/pages/admin/AdminManagementPage').then((module) => ({ default: module.AdminManagementPage })),
 );
+const AdminJobModerationPage = lazy(() =>
+  import('@/pages/admin/AdminJobModerationPage').then((module) => ({ default: module.AdminJobModerationPage })),
+);
+const AdminJobReviewPage = lazy(() =>
+  import('@/pages/admin/AdminJobReviewPage').then((module) => ({ default: module.AdminJobReviewPage })),
+);
+const AdminJobReportsPage = lazy(() =>
+  import('@/pages/admin/AdminJobReportsPage').then((module) => ({ default: module.AdminJobReportsPage })),
+);
 const AdminAnalyticsPage = lazy(() =>
   import('@/pages/admin/AdminAnalyticsPage').then((module) => ({ default: module.AdminAnalyticsPage })),
 );
@@ -273,7 +282,9 @@ export function AppRoutes() {
             <Route element={<AdminDashboardHome />} index />
             <Route element={<AdminManagementPage resource="users" />} path="users" />
             <Route element={<AdminManagementPage resource="companies" />} path="companies" />
-            <Route element={<AdminManagementPage resource="jobs" />} path="jobs" />
+            <Route element={<AdminJobModerationPage />} path="jobs" />
+            <Route element={<AdminJobReviewPage />} path="jobs/:jobId" />
+            <Route element={<AdminJobReportsPage />} path="job-reports" />
             <Route element={<AdminManagementPage resource="applications" />} path="applications" />
             <Route element={<AdminReportsPage />} path="reports" />
             <Route element={<AdminAnalyticsPage />} path="analytics" />
