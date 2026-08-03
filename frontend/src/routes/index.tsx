@@ -138,13 +138,24 @@ const CompanyApplicationDetailPage = lazy(() =>
     default: module.CompanyApplicationDetailPage,
   })),
 );
+const RecruiterPipelinePage = lazy(() =>
+  import('@/pages/company/RecruiterPipelinePage').then((module) => ({ default: module.RecruiterPipelinePage })),
+);
+const RecruiterCandidatesPage = lazy(() =>
+  import('@/pages/company/RecruiterCandidatesPage').then((module) => ({ default: module.RecruiterCandidatesPage })),
+);
+const RecruiterCandidateProfilePage = lazy(() =>
+  import('@/pages/company/RecruiterCandidateProfilePage').then((module) => ({ default: module.RecruiterCandidateProfilePage })),
+);
+const RecruiterInterviewsPage = lazy(() => import('@/pages/company/RecruiterWorkspacePages').then((module) => ({ default: module.RecruiterInterviewsPage })));
+const HiringPipelinePage = lazy(() => import('@/pages/company/RecruiterWorkspacePages').then((module) => ({ default: module.HiringPipelinePage })));
+const RecruiterNotesPage = lazy(() => import('@/pages/company/RecruiterWorkspacePages').then((module) => ({ default: module.RecruiterNotesPage })));
+const TeamCollaborationPage = lazy(() => import('@/pages/company/RecruiterWorkspacePages').then((module) => ({ default: module.TeamCollaborationPage })));
+const HiringCalendarPage = lazy(() => import('@/pages/company/RecruiterWorkspacePages').then((module) => ({ default: module.HiringCalendarPage })));
 const CompanyAnalyticsPage = lazy(() =>
   import('@/pages/company/CompanyAnalyticsPage').then((module) => ({
     default: module.CompanyAnalyticsPage,
   })),
-);
-const CompanyInterviewsPage = lazy(() =>
-  import('@/pages/company/CompanyWorkspacePages').then((module) => ({ default: module.CompanyInterviewsPage })),
 );
 const CompanyMessagesPage = lazy(() =>
   import('@/pages/company/CompanyWorkspacePages').then((module) => ({ default: module.CompanyMessagesPage })),
@@ -241,7 +252,14 @@ export function AppRoutes() {
             <Route element={<JobAnalyticsPage />} path="jobs/:jobId/analytics" />
             <Route element={<ApplicantsPage />} path="applicants" />
             <Route element={<CompanyApplicationDetailPage />} path="applicants/:applicationId" />
-            <Route element={<CompanyInterviewsPage />} path="interviews" />
+            <Route element={<RecruiterPipelinePage />} path="pipeline" />
+            <Route element={<RecruiterCandidatesPage />} path="candidates" />
+            <Route element={<RecruiterCandidateProfilePage />} path="candidates/:candidateId" />
+            <Route element={<RecruiterInterviewsPage />} path="interviews" />
+            <Route element={<HiringPipelinePage />} path="hiring-pipeline" />
+            <Route element={<RecruiterNotesPage />} path="recruiter-notes" />
+            <Route element={<TeamCollaborationPage />} path="recruiter-team" />
+            <Route element={<HiringCalendarPage />} path="hiring-calendar" />
             <Route element={<CompanyMessagesPage />} path="messages" />
             <Route element={<CompanyNotificationsPage />} path="notifications" />
             <Route element={<CompanyAnalyticsPage />} path="analytics" />

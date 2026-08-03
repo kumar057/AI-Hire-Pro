@@ -469,6 +469,76 @@ def test_admin_has_read_only_application_access(client: TestClient) -> None:
     assert forbidden_withdraw.status_code == 403
 
 
+def test_company_recruiter_candidate_workflow(client: TestClient) -> None:
+    auth_payload = register_company(client)
+    headers = {"Authorization": f"Bearer {auth_payload['access_token']}"}
+
+    candidates = client.get("/api/v1/company/candidates", headers=headers)
+    detail = client.get("/api/v1/company/candidates/candidate-1", headers=headers)
+    moved = client.patch(
+        "/api/v1/company/candidates/candidate-1/status",
+        headers=headers,
+        json={"status": "Screening"},
+    )
+    noted = client.post(
+        "/api/v1/company/candidates/candidate-1/notes",
+        headers=headers,
+        json={"content": "Strong architecture discussion."},
+    )
+    rated = client.post(
+        "/api/v1/company/candidates/candidate-1/rating",
+        headers=headers,
+        json={"rating": 5},
+    )
+
+    assert candidates.status_code == 200
+    assert candidates.json()["total"] == 9
+    assert detail.status_code == 200
+    assert detail.json()["education"]
+    assert moved.json()["candidate"]["status"] == "Screening"
+    assert noted.json()["candidate"]["notes"][-1]["content"] == (
+        "Strong architecture discussion."
+    )
+    assert rated.json()["candidate"]["rating"] == 5
+
+
+def test_candidate_cannot_access_recruiter_candidates(client: TestClient) -> None:
+    auth_payload = register_candidate(client)
+    response = client.get(
+        "/api/v1/company/candidates",
+        headers={"Authorization": f"Bearer {auth_payload['access_token']}"},
+    )
+
+    assert response.status_code == 403
+
+
+def test_admin_recruiter_candidate_access_is_read_only(client: TestClient) -> None:
+    asyncio.run(seed_admin(client))
+    login = client.post(
+        "/api/v1/auth/login",
+        json={"email": "admin@example.com", "password": "AdminSecure123!"},
+    )
+    headers = {"Authorization": f"Bearer {login.json()['access_token']}"}
+
+    candidates = client.get("/api/v1/company/candidates", headers=headers)
+    detail = client.get("/api/v1/company/candidates/candidate-1", headers=headers)
+    forbidden_move = client.patch(
+        "/api/v1/company/candidates/candidate-1/status",
+        headers=headers,
+        json={"status": "Rejected"},
+    )
+    forbidden_note = client.post(
+        "/api/v1/company/candidates/candidate-1/notes",
+        headers=headers,
+        json={"content": "Admin note"},
+    )
+
+    assert candidates.status_code == 200
+    assert detail.status_code == 200
+    assert forbidden_move.status_code == 403
+    assert forbidden_note.status_code == 403
+
+
 def test_candidate_resume_analysis_placeholder_endpoints(client: TestClient) -> None:
     auth_payload = register_candidate(client)
     headers = {"Authorization": f"Bearer {auth_payload['access_token']}"}
