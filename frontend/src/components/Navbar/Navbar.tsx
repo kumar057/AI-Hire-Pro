@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import {
   FiBriefcase,
+  FiGrid,
   FiLogIn,
   FiMenu,
   FiMoon,
@@ -9,13 +10,18 @@ import {
   FiUserPlus,
   FiX,
 } from 'react-icons/fi';
+import { Link } from 'react-router-dom';
 
 import { APP_NAME } from '@/constants/app';
 import { navItems } from '@/constants/landing';
+import { useAuth } from '@/hooks/useAuth';
+import { roleDashboardPath } from '@/utils/auth';
 
 export function Navbar() {
+  const { user } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDark, setIsDark] = useState(false);
+  const dashboardPath = user ? roleDashboardPath(user.role) : '/candidate/dashboard';
 
   useEffect(() => {
     const storedTheme = window.localStorage.getItem('theme');
@@ -67,20 +73,32 @@ export function Navbar() {
           >
             {isDark ? <FiSun aria-hidden="true" /> : <FiMoon aria-hidden="true" />}
           </button>
-          <a
-            className="inline-flex h-10 items-center gap-2 rounded-md px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-950 dark:text-slate-100 dark:hover:bg-white/10"
-            href="#login"
-          >
-            <FiLogIn aria-hidden="true" />
-            Login
-          </a>
-          <a
-            className="inline-flex h-10 items-center gap-2 rounded-md bg-slate-950 px-4 text-sm font-semibold text-white shadow-lg shadow-cyan-950/10 transition hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100"
-            href="#register"
-          >
-            <FiUserPlus aria-hidden="true" />
-            Register
-          </a>
+          {user ? (
+            <Link
+              className="inline-flex h-10 items-center gap-2 rounded-md bg-slate-950 px-4 text-sm font-semibold text-white shadow-lg shadow-cyan-950/10 transition hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100"
+              to={dashboardPath}
+            >
+              <FiGrid aria-hidden="true" />
+              Dashboard
+            </Link>
+          ) : (
+            <>
+              <Link
+                className="inline-flex h-10 items-center gap-2 rounded-md px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-950 dark:text-slate-100 dark:hover:bg-white/10"
+                to="/candidate/login"
+              >
+                <FiLogIn aria-hidden="true" />
+                Login
+              </Link>
+              <Link
+                className="inline-flex h-10 items-center gap-2 rounded-md bg-slate-950 px-4 text-sm font-semibold text-white shadow-lg shadow-cyan-950/10 transition hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100"
+                to="/candidate/register"
+              >
+                <FiUserPlus aria-hidden="true" />
+                Register
+              </Link>
+            </>
+          )}
         </div>
 
         <div className="flex items-center gap-2 lg:hidden">
@@ -125,22 +143,35 @@ export function Navbar() {
                 </a>
               ))}
               <div className="mt-3 grid grid-cols-2 gap-3">
-                <a
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-slate-200 text-sm font-semibold text-slate-700 dark:border-white/10 dark:text-slate-100"
-                  href="#login"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <FiLogIn aria-hidden="true" />
-                  Login
-                </a>
-                <a
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-slate-950 text-sm font-semibold text-white dark:bg-white dark:text-slate-950"
-                  href="#register"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <FiUserPlus aria-hidden="true" />
-                  Register
-                </a>
+                {user ? (
+                  <Link
+                    className="col-span-2 inline-flex h-11 items-center justify-center gap-2 rounded-md bg-slate-950 text-sm font-semibold text-white dark:bg-white dark:text-slate-950"
+                    onClick={() => setIsMenuOpen(false)}
+                    to={dashboardPath}
+                  >
+                    <FiGrid aria-hidden="true" />
+                    Dashboard
+                  </Link>
+                ) : (
+                  <>
+                    <Link
+                      className="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-slate-200 text-sm font-semibold text-slate-700 dark:border-white/10 dark:text-slate-100"
+                      onClick={() => setIsMenuOpen(false)}
+                      to="/candidate/login"
+                    >
+                      <FiLogIn aria-hidden="true" />
+                      Login
+                    </Link>
+                    <Link
+                      className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-slate-950 text-sm font-semibold text-white dark:bg-white dark:text-slate-950"
+                      onClick={() => setIsMenuOpen(false)}
+                      to="/candidate/register"
+                    >
+                      <FiUserPlus aria-hidden="true" />
+                      Register
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </motion.div>
@@ -149,4 +180,3 @@ export function Navbar() {
     </header>
   );
 }
-

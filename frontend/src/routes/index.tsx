@@ -27,9 +27,130 @@ const ProfileSetupPage = lazy(() =>
     default: module.ProfileSetupPage,
   })),
 );
-const DashboardPage = lazy(() =>
-  import('@/pages/auth/DashboardPage').then((module) => ({ default: module.DashboardPage })),
+const CandidateDashboardLayout = lazy(() =>
+  import('@/layouts/CandidateDashboardLayout').then((module) => ({
+    default: module.CandidateDashboardLayout,
+  })),
 );
+const CandidateDashboardHome = lazy(() =>
+  import('@/pages/candidate/CandidateDashboardHome').then((module) => ({
+    default: module.CandidateDashboardHome,
+  })),
+);
+const MyProfilePage = lazy(() =>
+  import('@/pages/candidate/MyProfilePage').then((module) => ({ default: module.MyProfilePage })),
+);
+const ResumePage = lazy(() =>
+  import('@/pages/candidate/ResumePage').then((module) => ({ default: module.ResumePage })),
+);
+const ResumeAnalyzerPage = lazy(() =>
+  import('@/pages/candidate/ResumeAnalyzerPage').then((module) => ({
+    default: module.ResumeAnalyzerPage,
+  })),
+);
+const JobsPage = lazy(() =>
+  import('@/pages/candidate/JobsPage').then((module) => ({ default: module.JobsPage })),
+);
+const SavedJobsPage = lazy(() =>
+  import('@/pages/candidate/SavedJobsPage').then((module) => ({ default: module.SavedJobsPage })),
+);
+const AppliedJobsPage = lazy(() =>
+  import('@/pages/candidate/AppliedJobsPage').then((module) => ({
+    default: module.AppliedJobsPage,
+  })),
+);
+const ApplicationHistoryPage = lazy(() =>
+  import('@/pages/candidate/ApplicationHistoryPage').then((module) => ({
+    default: module.ApplicationHistoryPage,
+  })),
+);
+const NotificationsPage = lazy(() =>
+  import('@/pages/candidate/NotificationsPage').then((module) => ({
+    default: module.NotificationsPage,
+  })),
+);
+const MessagesPage = lazy(() =>
+  import('@/pages/candidate/MessagesPage').then((module) => ({ default: module.MessagesPage })),
+);
+const SettingsPage = lazy(() =>
+  import('@/pages/candidate/SettingsPage').then((module) => ({ default: module.SettingsPage })),
+);
+const HelpPage = lazy(() =>
+  import('@/pages/candidate/HelpPage').then((module) => ({ default: module.HelpPage })),
+);
+const CompanyDashboardLayout = lazy(() =>
+  import('@/layouts/CompanyDashboardLayout').then((module) => ({
+    default: module.CompanyDashboardLayout,
+  })),
+);
+const CompanyDashboardHome = lazy(() =>
+  import('@/pages/company/CompanyDashboardHome').then((module) => ({
+    default: module.CompanyDashboardHome,
+  })),
+);
+const CompanyProfilePage = lazy(() =>
+  import('@/pages/company/CompanyProfilePage').then((module) => ({
+    default: module.CompanyProfilePage,
+  })),
+);
+const PostJobPage = lazy(() =>
+  import('@/pages/company/PostJobPage').then((module) => ({ default: module.PostJobPage })),
+);
+const ManageJobsPage = lazy(() =>
+  import('@/pages/company/ManageJobsPage').then((module) => ({
+    default: module.ManageJobsPage,
+  })),
+);
+const ApplicantsPage = lazy(() =>
+  import('@/pages/company/ApplicantsPage').then((module) => ({
+    default: module.ApplicantsPage,
+  })),
+);
+const CompanyAnalyticsPage = lazy(() =>
+  import('@/pages/company/CompanyAnalyticsPage').then((module) => ({
+    default: module.CompanyAnalyticsPage,
+  })),
+);
+const CompanyInterviewsPage = lazy(() =>
+  import('@/pages/company/CompanyWorkspacePages').then((module) => ({ default: module.CompanyInterviewsPage })),
+);
+const CompanyMessagesPage = lazy(() =>
+  import('@/pages/company/CompanyWorkspacePages').then((module) => ({ default: module.CompanyMessagesPage })),
+);
+const CompanyNotificationsPage = lazy(() =>
+  import('@/pages/company/CompanyWorkspacePages').then((module) => ({ default: module.CompanyNotificationsPage })),
+);
+const CompanySubscriptionPage = lazy(() =>
+  import('@/pages/company/CompanyWorkspacePages').then((module) => ({ default: module.CompanySubscriptionPage })),
+);
+const CompanySettingsPage = lazy(() =>
+  import('@/pages/company/CompanyWorkspacePages').then((module) => ({ default: module.CompanySettingsPage })),
+);
+const CompanyHelpPage = lazy(() =>
+  import('@/pages/company/CompanyWorkspacePages').then((module) => ({ default: module.CompanyHelpPage })),
+);
+const AdminDashboardLayout = lazy(() =>
+  import('@/layouts/AdminDashboardLayout').then((module) => ({ default: module.AdminDashboardLayout })),
+);
+const AdminDashboardHome = lazy(() =>
+  import('@/pages/admin/AdminDashboardHome').then((module) => ({ default: module.AdminDashboardHome })),
+);
+const AdminManagementPage = lazy(() =>
+  import('@/pages/admin/AdminManagementPage').then((module) => ({ default: module.AdminManagementPage })),
+);
+const AdminAnalyticsPage = lazy(() =>
+  import('@/pages/admin/AdminAnalyticsPage').then((module) => ({ default: module.AdminAnalyticsPage })),
+);
+const AdminReportsPage = lazy(() =>
+  import('@/pages/admin/AdminReportsPage').then((module) => ({ default: module.AdminReportsPage })),
+);
+const AdminActivityPage = lazy(() => import('@/pages/admin/AdminOperationsPages').then((module) => ({ default: module.AdminActivityPage })));
+const AdminAuditPage = lazy(() => import('@/pages/admin/AdminOperationsPages').then((module) => ({ default: module.AdminAuditPage })));
+const AdminSupportPage = lazy(() => import('@/pages/admin/AdminOperationsPages').then((module) => ({ default: module.AdminSupportPage })));
+const AdminNotificationsPage = lazy(() => import('@/pages/admin/AdminOperationsPages').then((module) => ({ default: module.AdminNotificationsPage })));
+const AdminFeedbackPage = lazy(() => import('@/pages/admin/AdminOperationsPages').then((module) => ({ default: module.AdminFeedbackPage })));
+const AdminAISettingsPage = lazy(() => import('@/pages/admin/AdminOperationsPages').then((module) => ({ default: module.AdminAISettingsPage })));
+const AdminSettingsPage = lazy(() => import('@/pages/admin/AdminOperationsPages').then((module) => ({ default: module.AdminSettingsPage })));
 
 function PageLoader() {
   return (
@@ -56,13 +177,54 @@ export function AppRoutes() {
           <Route element={<ProfileSetupPage />} path="/profile/setup" />
         </Route>
         <Route element={<ProtectedRoute allowedRoles={['candidate']} />}>
-          <Route element={<DashboardPage role="candidate" />} path="/candidate/dashboard" />
+          <Route element={<CandidateDashboardLayout />} path="/candidate/dashboard">
+            <Route element={<CandidateDashboardHome />} index />
+            <Route element={<MyProfilePage />} path="profile" />
+            <Route element={<ResumePage />} path="resume" />
+            <Route element={<ResumeAnalyzerPage />} path="resume-analyzer" />
+            <Route element={<JobsPage />} path="jobs" />
+            <Route element={<SavedJobsPage />} path="saved-jobs" />
+            <Route element={<AppliedJobsPage />} path="applied-jobs" />
+            <Route element={<ApplicationHistoryPage />} path="application-history" />
+            <Route element={<NotificationsPage />} path="notifications" />
+            <Route element={<MessagesPage />} path="messages" />
+            <Route element={<SettingsPage />} path="settings" />
+            <Route element={<HelpPage />} path="help" />
+          </Route>
         </Route>
         <Route element={<ProtectedRoute allowedRoles={['company']} />}>
-          <Route element={<DashboardPage role="company" />} path="/company/dashboard" />
+          <Route element={<CompanyDashboardLayout />} path="/company/dashboard">
+            <Route element={<CompanyDashboardHome />} index />
+            <Route element={<CompanyProfilePage />} path="profile" />
+            <Route element={<PostJobPage />} path="post-job" />
+            <Route element={<ManageJobsPage />} path="jobs" />
+            <Route element={<ApplicantsPage />} path="applicants" />
+            <Route element={<CompanyInterviewsPage />} path="interviews" />
+            <Route element={<CompanyMessagesPage />} path="messages" />
+            <Route element={<CompanyNotificationsPage />} path="notifications" />
+            <Route element={<CompanyAnalyticsPage />} path="analytics" />
+            <Route element={<CompanySubscriptionPage />} path="subscription" />
+            <Route element={<CompanySettingsPage />} path="settings" />
+            <Route element={<CompanyHelpPage />} path="help" />
+          </Route>
         </Route>
         <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
-          <Route element={<DashboardPage role="admin" />} path="/admin/dashboard" />
+          <Route element={<AdminDashboardLayout />} path="/admin/dashboard">
+            <Route element={<AdminDashboardHome />} index />
+            <Route element={<AdminManagementPage resource="users" />} path="users" />
+            <Route element={<AdminManagementPage resource="companies" />} path="companies" />
+            <Route element={<AdminManagementPage resource="jobs" />} path="jobs" />
+            <Route element={<AdminManagementPage resource="applications" />} path="applications" />
+            <Route element={<AdminReportsPage />} path="reports" />
+            <Route element={<AdminAnalyticsPage />} path="analytics" />
+            <Route element={<AdminNotificationsPage />} path="notifications" />
+            <Route element={<AdminActivityPage />} path="activity" />
+            <Route element={<AdminAuditPage />} path="audit" />
+            <Route element={<AdminSupportPage />} path="support" />
+            <Route element={<AdminFeedbackPage />} path="feedback" />
+            <Route element={<AdminAISettingsPage />} path="ai-settings" />
+            <Route element={<AdminSettingsPage />} path="settings" />
+          </Route>
         </Route>
         <Route element={<Navigate replace to="/" />} path="*" />
       </Routes>
