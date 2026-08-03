@@ -61,6 +61,14 @@ const JobDetailsPage = lazy(() =>
     default: module.JobDetailsPage,
   })),
 );
+const ApplyJobPage = lazy(() =>
+  import('@/pages/candidate/ApplyJobPage').then((module) => ({ default: module.ApplyJobPage })),
+);
+const CandidateApplicationDetailPage = lazy(() =>
+  import('@/pages/candidate/CandidateApplicationDetailPage').then((module) => ({
+    default: module.CandidateApplicationDetailPage,
+  })),
+);
 const SavedJobsPage = lazy(() =>
   import('@/pages/candidate/SavedJobsPage').then((module) => ({ default: module.SavedJobsPage })),
 );
@@ -123,6 +131,11 @@ const JobAnalyticsPage = lazy(() =>
 const ApplicantsPage = lazy(() =>
   import('@/pages/company/ApplicantsPage').then((module) => ({
     default: module.ApplicantsPage,
+  })),
+);
+const CompanyApplicationDetailPage = lazy(() =>
+  import('@/pages/company/CompanyApplicationDetailPage').then((module) => ({
+    default: module.CompanyApplicationDetailPage,
   })),
 );
 const CompanyAnalyticsPage = lazy(() =>
@@ -206,9 +219,11 @@ export function AppRoutes() {
             <Route element={<JobDiscoveryPage mode="featured" />} path="jobs/featured" />
             <Route element={<JobDiscoveryPage mode="similar" />} path="jobs/:jobId/similar" />
             <Route element={<JobDetailsPage />} path="jobs/:jobId" />
+            <Route element={<ApplyJobPage />} path="jobs/:jobId/apply" />
             <Route element={<SavedJobsPage />} path="saved-jobs" />
             <Route element={<AppliedJobsPage />} path="applied-jobs" />
             <Route element={<ApplicationHistoryPage />} path="application-history" />
+            <Route element={<CandidateApplicationDetailPage />} path="applications/:applicationId" />
             <Route element={<NotificationsPage />} path="notifications" />
             <Route element={<MessagesPage />} path="messages" />
             <Route element={<SettingsPage />} path="settings" />
@@ -225,6 +240,7 @@ export function AppRoutes() {
             <Route element={<JobPreviewPage />} path="jobs/:jobId/preview" />
             <Route element={<JobAnalyticsPage />} path="jobs/:jobId/analytics" />
             <Route element={<ApplicantsPage />} path="applicants" />
+            <Route element={<CompanyApplicationDetailPage />} path="applicants/:applicationId" />
             <Route element={<CompanyInterviewsPage />} path="interviews" />
             <Route element={<CompanyMessagesPage />} path="messages" />
             <Route element={<CompanyNotificationsPage />} path="notifications" />

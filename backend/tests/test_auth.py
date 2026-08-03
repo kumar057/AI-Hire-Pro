@@ -373,6 +373,102 @@ def test_candidate_job_management_placeholder_endpoints(client: TestClient) -> N
     assert apply_job.json()["status"] == "applied"
 
 
+def test_candidate_application_workflow(client: TestClient) -> None:
+    auth_payload = register_candidate(client)
+    headers = {"Authorization": f"Bearer {auth_payload['access_token']}"}
+    payload = {
+        "job_id": "job-002",
+        "resume_id": "resume-current",
+        "cover_letter": "I am excited to contribute to this role.",
+        "status": "Submitted",
+        "quick_apply": False,
+    }
+
+    created = client.post("/api/v1/applications", headers=headers, json=payload)
+    applications = client.get("/api/v1/candidate/applications", headers=headers)
+    detail = client.get("/api/v1/applications/application-1", headers=headers)
+    withdrawn = client.delete("/api/v1/applications/application-1", headers=headers)
+    forbidden_status = client.patch(
+        "/api/v1/applications/application-1/status",
+        headers=headers,
+        json={"status": "Shortlisted", "note": ""},
+    )
+
+    assert created.status_code == 201
+    assert created.json()["status"] == "Submitted"
+    assert applications.status_code == 200
+    assert applications.json()["total"] == 4
+    assert all(
+        item["candidate_id"] == detail.json()["candidate_id"]
+        for item in applications.json()["applications"]
+    )
+    assert detail.status_code == 200
+    assert withdrawn.status_code == 200
+    assert withdrawn.json()["status"] == "Withdrawn"
+    assert forbidden_status.status_code == 403
+
+
+def test_company_application_management_and_candidate_mutation_denial(
+    client: TestClient,
+) -> None:
+    auth_payload = register_company(client)
+    headers = {"Authorization": f"Bearer {auth_payload['access_token']}"}
+
+    applications = client.get("/api/v1/company/applications", headers=headers)
+    detail = client.get("/api/v1/applications/application-2", headers=headers)
+    updated = client.patch(
+        "/api/v1/applications/application-2/status",
+        headers=headers,
+        json={"status": "Shortlisted", "note": "Strong technical profile."},
+    )
+    forbidden_create = client.post(
+        "/api/v1/applications",
+        headers=headers,
+        json={
+            "job_id": "job-002",
+            "resume_id": "resume-current",
+            "cover_letter": "",
+            "status": "Submitted",
+            "quick_apply": True,
+        },
+    )
+    forbidden_withdraw = client.delete(
+        "/api/v1/applications/application-2", headers=headers
+    )
+
+    assert applications.status_code == 200
+    assert applications.json()["total"] == 4
+    assert detail.status_code == 200
+    assert updated.status_code == 200
+    assert updated.json()["status"] == "Shortlisted"
+    assert updated.json()["timeline"][-1]["description"] == "Strong technical profile."
+    assert forbidden_create.status_code == 403
+    assert forbidden_withdraw.status_code == 403
+
+
+def test_admin_has_read_only_application_access(client: TestClient) -> None:
+    asyncio.run(seed_admin(client))
+    login = client.post(
+        "/api/v1/auth/login",
+        json={"email": "admin@example.com", "password": "AdminSecure123!"},
+    )
+    headers = {"Authorization": f"Bearer {login.json()['access_token']}"}
+
+    detail = client.get("/api/v1/applications/application-1", headers=headers)
+    forbidden_status = client.patch(
+        "/api/v1/applications/application-1/status",
+        headers=headers,
+        json={"status": "Rejected", "note": ""},
+    )
+    forbidden_withdraw = client.delete(
+        "/api/v1/applications/application-1", headers=headers
+    )
+
+    assert detail.status_code == 200
+    assert forbidden_status.status_code == 403
+    assert forbidden_withdraw.status_code == 403
+
+
 def test_candidate_resume_analysis_placeholder_endpoints(client: TestClient) -> None:
     auth_payload = register_candidate(client)
     headers = {"Authorization": f"Bearer {auth_payload['access_token']}"}

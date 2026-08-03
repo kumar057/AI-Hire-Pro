@@ -11,6 +11,7 @@ import { DiscoverySkeleton } from '@/components/JobDiscovery/DiscoverySkeleton';
 import { JobPagination } from '@/components/CandidateJobs/JobPagination';
 import { DISCOVERY_SORT_OPTIONS, EMPTY_DISCOVERY_FILTERS, JOBS_PAGE_SIZE } from '@/constants/jobs';
 import { jobService } from '@/services/jobService';
+import { applicationService } from '@/services/applicationService';
 import type { DiscoveryFilters as FilterState, JobPosting } from '@/types/jobs';
 import { filterDiscoveryJobs, paginateJobs, sortDiscoveryJobs } from '@/utils/jobs';
 
@@ -60,7 +61,7 @@ export function JobDiscoveryPage({ mode = 'browse' }: Props) {
     toast.success(job.is_saved ? 'Removed from saved jobs.' : 'Job saved.');
   }
   async function apply(job: JobPosting) {
-    await jobService.applyJob(job.id);
+    await applicationService.create({ job_id: job.id, resume_id: 'resume-current', cover_letter: '', status: 'Submitted', quick_apply: true });
     setJobs((items) => items.map((item) => item.id === job.id ? { ...item, is_applied: true } : item));
     toast.success('Quick application placeholder submitted.');
   }

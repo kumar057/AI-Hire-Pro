@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config.settings import get_settings
 from app.middleware.rate_limit import AuthRateLimitMiddleware
 from app.middleware.request_id import RequestIDMiddleware
-from app.routers import admin, ai, auth, candidate, company, health, jobs, users
+from app.routers import admin, ai, applications, auth, candidate, company, health, jobs, users
 from app.utils.logging import configure_logging
 
 
@@ -34,6 +34,7 @@ def create_app() -> FastAPI:
     app.include_router(auth.router, prefix=settings.API_PREFIX, tags=["auth"])
     app.include_router(admin.router, prefix=settings.API_PREFIX, tags=["admin"])
     app.include_router(ai.router, prefix=settings.API_PREFIX, tags=["ai"])
+    app.include_router(applications.router, prefix=settings.API_PREFIX, tags=["applications"])
     app.include_router(candidate.router, prefix=settings.API_PREFIX, tags=["candidate"])
     app.include_router(company.router, prefix=settings.API_PREFIX, tags=["company"])
     app.include_router(health.router, prefix=settings.API_PREFIX, tags=["health"])
