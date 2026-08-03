@@ -51,6 +51,16 @@ const ResumeAnalyzerPage = lazy(() =>
 const JobsPage = lazy(() =>
   import('@/pages/candidate/JobsPage').then((module) => ({ default: module.JobsPage })),
 );
+const JobDiscoveryPage = lazy(() =>
+  import('@/pages/candidate/JobDiscoveryPage').then((module) => ({
+    default: module.JobDiscoveryPage,
+  })),
+);
+const JobDetailsPage = lazy(() =>
+  import('@/pages/candidate/JobDetailsPage').then((module) => ({
+    default: module.JobDetailsPage,
+  })),
+);
 const SavedJobsPage = lazy(() =>
   import('@/pages/candidate/SavedJobsPage').then((module) => ({ default: module.SavedJobsPage })),
 );
@@ -192,6 +202,10 @@ export function AppRoutes() {
             <Route element={<ResumePage />} path="resume" />
             <Route element={<ResumeAnalyzerPage />} path="resume-analyzer" />
             <Route element={<JobsPage />} path="jobs" />
+            <Route element={<JobDiscoveryPage mode="search" />} path="jobs/search" />
+            <Route element={<JobDiscoveryPage mode="featured" />} path="jobs/featured" />
+            <Route element={<JobDiscoveryPage mode="similar" />} path="jobs/:jobId/similar" />
+            <Route element={<JobDetailsPage />} path="jobs/:jobId" />
             <Route element={<SavedJobsPage />} path="saved-jobs" />
             <Route element={<AppliedJobsPage />} path="applied-jobs" />
             <Route element={<ApplicationHistoryPage />} path="application-history" />

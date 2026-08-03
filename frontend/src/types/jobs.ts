@@ -13,6 +13,27 @@ export type JobPosting = {
   is_saved: boolean;
   is_applied: boolean;
   description: string;
+  company_logo: string;
+  country: string;
+  state: string;
+  city: string;
+  department: string;
+  industry: string;
+  education: string;
+  notice_period: string;
+  company_size: string;
+  job_status: string;
+  salary_min: number;
+  salary_max: number;
+  applicants: number;
+  is_featured: boolean;
+  responsibilities: string[];
+  requirements: string[];
+  benefits: string[];
+  company_overview: string;
+  company_rating: number;
+  office_location: string;
+  company_photos: string[];
 };
 
 export type JobListResponse = {
@@ -52,6 +73,27 @@ export type JobQuery = {
   page_size?: number;
   search?: string;
   sort?: string;
+};
+
+export type DiscoveryFilters = {
+  title: string;
+  skill: string;
+  company: string;
+  location: string;
+  country: string;
+  state: string;
+  city: string;
+  workMode: string;
+  experience: string;
+  salary: string;
+  employmentType: string;
+  department: string;
+  industry: string;
+  education: string;
+  noticePeriod: string;
+  postedDate: string;
+  companySize: string;
+  status: string;
 };
 
 export type JobActionResponse = {

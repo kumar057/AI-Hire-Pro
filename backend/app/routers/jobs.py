@@ -15,13 +15,15 @@ async def list_jobs(
 ) -> JobListResponse:
     jobs = _jobs()
     if search:
-        needle = search.lower()
+        needles = search.lower().split()
         jobs = [
             job
             for job in jobs
-            if needle in job.title.lower()
-            or needle in job.company.lower()
-            or any(needle in skill.lower() for skill in job.skills)
+            if all(
+                needle
+                in " ".join([job.title, job.company, job.location, *job.skills]).lower()
+                for needle in needles
+            )
         ]
 
     if location:
@@ -38,6 +40,40 @@ async def list_jobs(
     start = (page - 1) * page_size
     end = start + page_size
     return JobListResponse(jobs=jobs[start:end], total=len(jobs), page=page, page_size=page_size)
+
+
+@router.get("/search")
+async def search_jobs(
+    q: str = "",
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=8, ge=1, le=50),
+) -> JobListResponse:
+    return await list_jobs(page=page, page_size=page_size, search=q)
+
+
+@router.get("/featured")
+async def featured_jobs() -> JobListResponse:
+    jobs = [job for job in _jobs() if job.is_featured]
+    return JobListResponse(jobs=jobs, total=len(jobs), page=1, page_size=len(jobs))
+
+
+@router.get("/similar/{job_id}")
+async def similar_jobs(job_id: str) -> JobListResponse:
+    jobs = _jobs()
+    current = next((job for job in jobs if job.id == job_id), jobs[0])
+    similar = [
+        job
+        for job in jobs
+        if job.id != current.id
+        and (job.department == current.department or set(job.skills) & set(current.skills))
+    ][:4]
+    return JobListResponse(jobs=similar, total=len(similar), page=1, page_size=len(similar))
+
+
+@router.get("/{job_id}")
+async def job_detail(job_id: str) -> JobPosting:
+    jobs = _jobs()
+    return next((job for job in jobs if job.id == job_id), jobs[0])
 
 
 def _jobs() -> list[JobPosting]:
@@ -57,6 +93,28 @@ def _jobs() -> list[JobPosting]:
             is_saved=True,
             is_applied=True,
             description="Build polished hiring workflows and scalable frontend architecture.",
+            city="Remote",
+            department="Product Engineering",
+            industry="HR Technology",
+            salary_min=145000,
+            salary_max=180000,
+            applicants=86,
+            is_featured=True,
+            responsibilities=[
+                "Lead frontend architecture",
+                "Mentor engineers",
+                "Own design-system quality",
+            ],
+            requirements=[
+                "5+ years with React",
+                "Advanced TypeScript",
+                "Strong accessibility practice",
+            ],
+            benefits=["Remote stipend", "Health coverage", "Learning budget", "Flexible leave"],
+            company_overview="SignalWorks builds dependable hiring software for distributed teams.",
+            company_rating=4.8,
+            office_location="Distributed across the United States",
+            company_photos=["Product studio", "Team collaboration", "Remote meetup"],
         ),
         JobPosting(
             id="job-002",
@@ -73,6 +131,25 @@ def _jobs() -> list[JobPosting]:
             is_saved=False,
             is_applied=False,
             description="Prototype AI-assisted product surfaces for enterprise customers.",
+            city="San Francisco",
+            state="California",
+            department="AI Products",
+            industry="Artificial Intelligence",
+            salary_min=160000,
+            salary_max=210000,
+            applicants=124,
+            is_featured=True,
+            responsibilities=[
+                "Prototype AI workflows",
+                "Partner with product design",
+                "Ship secure APIs",
+            ],
+            requirements=["React and Python expertise", "Product experimentation experience"],
+            benefits=["Equity", "Medical coverage", "Annual retreat"],
+            company_overview="Northstar Labs creates practical AI systems for enterprise teams.",
+            company_rating=4.7,
+            office_location="Mission District, San Francisco",
+            company_photos=["AI lab", "Design review", "San Francisco office"],
         ),
         JobPosting(
             id="job-003",
@@ -89,6 +166,21 @@ def _jobs() -> list[JobPosting]:
             is_saved=True,
             is_applied=False,
             description="Own product APIs and frontend dashboards for platform operations.",
+            city="Austin",
+            state="Texas",
+            department="Platform Engineering",
+            industry="Cloud Infrastructure",
+            salary_min=135000,
+            salary_max=170000,
+            applicants=67,
+            is_featured=True,
+            responsibilities=["Build platform APIs", "Improve observability", "Own releases"],
+            requirements=["FastAPI experience", "PostgreSQL expertise", "Cloud fundamentals"],
+            benefits=["Remote first", "Home office budget", "401(k) match"],
+            company_overview="CloudNest helps engineering teams operate reliable cloud platforms.",
+            company_rating=4.6,
+            office_location="Downtown Austin, Texas",
+            company_photos=["Austin hub", "Platform team", "Engineering workshop"],
         ),
         JobPosting(
             id="job-004",
@@ -105,6 +197,21 @@ def _jobs() -> list[JobPosting]:
             is_saved=False,
             is_applied=True,
             description="Scale reusable UI components for a high-growth recruiting product.",
+            city="New York",
+            state="New York",
+            department="Design Systems",
+            industry="HR Technology",
+            salary_min=110000,
+            salary_max=145000,
+            applicants=53,
+            responsibilities=["Build accessible components", "Maintain UI documentation"],
+            requirements=["Design systems experience", "WCAG knowledge"],
+            benefits=["Transit benefit", "Flexible schedule"],
+            company_overview=(
+                "BrightHire improves structured interviewing for modern organizations."
+            ),
+            company_rating=4.5,
+            office_location="Flatiron District, New York",
         ),
         JobPosting(
             id="job-005",
@@ -121,6 +228,14 @@ def _jobs() -> list[JobPosting]:
             is_saved=False,
             is_applied=False,
             description="Improve dashboard load time, rendering quality, and observability.",
+            city="Seattle",
+            state="Washington",
+            department="Web Platform",
+            industry="Artificial Intelligence",
+            salary_min=150000,
+            salary_max=190000,
+            applicants=91,
+            is_featured=True,
         ),
         JobPosting(
             id="job-006",
@@ -137,6 +252,12 @@ def _jobs() -> list[JobPosting]:
             is_saved=True,
             is_applied=False,
             description="Create premium product UI for hiring analytics and candidate workflows.",
+            city="Chicago",
+            state="Illinois",
+            department="Product Engineering",
+            salary_min=120000,
+            salary_max=155000,
+            applicants=42,
         ),
         JobPosting(
             id="job-007",
@@ -153,6 +274,13 @@ def _jobs() -> list[JobPosting]:
             is_saved=False,
             is_applied=False,
             description="Build secure APIs for candidate, company, and admin modules.",
+            country="Canada",
+            city="Remote",
+            department="Backend Engineering",
+            industry="HR Technology",
+            salary_min=125000,
+            salary_max=165000,
+            applicants=38,
         ),
         JobPosting(
             id="job-008",
@@ -169,5 +297,11 @@ def _jobs() -> list[JobPosting]:
             is_saved=False,
             is_applied=False,
             description="Improve routing, test reliability, build performance, and shared UI.",
+            city="Boston",
+            state="Massachusetts",
+            department="Developer Experience",
+            salary_min=140000,
+            salary_max=175000,
+            applicants=49,
         ),
     ]

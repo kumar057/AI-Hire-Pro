@@ -332,6 +332,23 @@ def test_jobs_placeholder_list_supports_search_and_pagination(client: TestClient
     assert all("React" in job["skills"] or "React" in job["title"] for job in payload["jobs"])
 
 
+def test_job_discovery_placeholder_endpoints(client: TestClient) -> None:
+    search = client.get("/api/v1/jobs/search", params={"q": "Python"})
+    detail = client.get("/api/v1/jobs/job-002")
+    featured = client.get("/api/v1/jobs/featured")
+    similar = client.get("/api/v1/jobs/similar/job-002")
+
+    assert search.status_code == 200
+    assert search.json()["total"] >= 1
+    assert detail.status_code == 200
+    assert detail.json()["id"] == "job-002"
+    assert detail.json()["responsibilities"]
+    assert featured.status_code == 200
+    assert all(job["is_featured"] for job in featured.json()["jobs"])
+    assert similar.status_code == 200
+    assert all(job["id"] != "job-002" for job in similar.json()["jobs"])
+
+
 def test_candidate_job_management_placeholder_endpoints(client: TestClient) -> None:
     auth_payload = register_candidate(client)
     headers = {"Authorization": f"Bearer {auth_payload['access_token']}"}

@@ -12,6 +12,28 @@ export const jobService = {
     return response.data;
   },
 
+  async searchJobs(query: string, page = 1) {
+    const response = await apiClient.get<JobListResponse>('/jobs/search', {
+      params: { q: query, page, page_size: 50 },
+    });
+    return response.data;
+  },
+
+  async getJob(jobId: string) {
+    const response = await apiClient.get<import('@/types/jobs').JobPosting>(`/jobs/${jobId}`);
+    return response.data;
+  },
+
+  async getFeaturedJobs() {
+    const response = await apiClient.get<JobListResponse>('/jobs/featured');
+    return response.data;
+  },
+
+  async getSimilarJobs(jobId: string) {
+    const response = await apiClient.get<JobListResponse>(`/jobs/similar/${jobId}`);
+    return response.data;
+  },
+
   async getSavedJobs() {
     const response = await apiClient.get<JobListResponse>('/candidate/saved-jobs');
     return response.data;
