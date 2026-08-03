@@ -1,5 +1,6 @@
-import { FiBriefcase, FiGithub, FiLinkedin, FiMail, FiTwitter } from 'react-icons/fi';
+import { FiGithub, FiLinkedin, FiMail, FiTwitter } from 'react-icons/fi';
 
+import { BrandLogo } from '@/components/BrandLogo';
 import { APP_NAME } from '@/constants/app';
 import { navItems } from '@/constants/landing';
 
@@ -16,9 +17,7 @@ export function Footer() {
       <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[1fr_auto] lg:px-8">
         <div>
           <a className="inline-flex items-center gap-3" href="#home">
-            <span className="grid size-10 place-items-center rounded-lg bg-slate-950 text-white dark:bg-white dark:text-slate-950">
-              <FiBriefcase aria-hidden="true" />
-            </span>
+            <BrandLogo />
             <span className="text-lg font-bold text-slate-950 dark:text-white">{APP_NAME}</span>
           </a>
           <p className="mt-4 max-w-md text-sm leading-6 text-slate-600 dark:text-slate-300">
@@ -74,4 +73,3 @@ export function Footer() {
     </footer>
   );
 }
-

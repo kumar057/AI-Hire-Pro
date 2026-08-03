@@ -2,7 +2,7 @@ import gsap from 'gsap';
 import type { PropsWithChildren } from 'react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FiBriefcase, FiMoon, FiSun } from 'react-icons/fi';
+import { FiMoon, FiSun } from 'react-icons/fi';
 
 import { APP_NAME } from '@/constants/app';
 
@@ -53,9 +53,7 @@ export function AuthLayout({ children, eyebrow, subtitle, title }: AuthLayoutPro
       <div className="relative z-10 mx-auto flex min-h-[calc(100vh-4rem)] max-w-6xl flex-col">
         <header className="flex items-center justify-between">
           <Link className="inline-flex items-center gap-3" to="/">
-            <span className="grid size-10 place-items-center rounded-lg bg-slate-950 text-white shadow-lg shadow-cyan-950/10 dark:bg-white dark:text-slate-950">
-              <FiBriefcase aria-hidden="true" />
-            </span>
+            <BrandLogo className="size-10 shadow-lg shadow-cyan-950/10" />
             <span className="text-lg font-bold">{APP_NAME}</span>
           </Link>
           <button
@@ -87,4 +85,4 @@ export function AuthLayout({ children, eyebrow, subtitle, title }: AuthLayoutPro
     </main>
   );
 }
-
+import { BrandLogo } from '@/components/BrandLogo';

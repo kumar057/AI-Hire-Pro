@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { FiBriefcase, FiChevronLeft, FiChevronRight, FiLogOut, FiX } from 'react-icons/fi';
+import { FiChevronLeft, FiChevronRight, FiLogOut, FiX } from 'react-icons/fi';
 import { NavLink } from 'react-router-dom';
 
 import { COMPANY_NAV_ITEMS } from '@/constants/companyDashboard';
@@ -31,7 +31,7 @@ export function CompanySidebar({ collapsed, isOpen, onClose, onLogout, onToggleC
       <aside className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-slate-200 bg-white/95 shadow-2xl backdrop-blur-xl transition-all duration-300 lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:translate-x-0 lg:shadow-none dark:border-white/10 dark:bg-slate-950/95 ${isOpen ? 'translate-x-0' : '-translate-x-full'} ${collapsed ? 'lg:w-20' : 'lg:w-72'}`}>
         <div className="flex h-16 items-center justify-between gap-3 border-b border-slate-200 px-4 dark:border-white/10">
           <NavLink className="flex min-w-0 items-center gap-3" onClick={onClose} to="/company/dashboard">
-            <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-cyan-600 text-white"><FiBriefcase /></span>
+            <BrandLogo />
             <span className={`truncate text-lg font-bold text-slate-950 dark:text-white ${collapsed ? 'lg:sr-only' : ''}`}>AIHire Pro</span>
           </NavLink>
           <button aria-label="Close sidebar" className="grid size-9 place-items-center lg:hidden" onClick={onClose} type="button"><FiX /></button>
@@ -54,4 +54,4 @@ export function CompanySidebar({ collapsed, isOpen, onClose, onLogout, onToggleC
     </>
   );
 }
-
+import { BrandLogo } from '@/components/BrandLogo';

@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { FiArrowRight, FiBell, FiCheckCircle, FiMail } from 'react-icons/fi';
 
 import { CompanyCard } from '@/components/CompanyCard/CompanyCard';
+import { BrandLogo } from '@/components/BrandLogo';
 import { CursorFollower } from '@/components/CursorFollower/CursorFollower';
 import { FAQ } from '@/components/FAQ/FAQ';
 import { Footer } from '@/components/Footer/Footer';
@@ -264,9 +265,7 @@ function LoadingOverlay() {
         className="flex items-center gap-3"
         transition={{ duration: 0.65, ease: 'easeOut' }}
       >
-        <span className="grid size-11 place-items-center rounded-lg bg-white text-slate-950">
-          <FiCheckCircle aria-hidden="true" />
-        </span>
+        <BrandLogo className="size-11" />
         <span className="text-xl font-bold tracking-normal">AIHire Pro</span>
       </motion.div>
     </motion.div>
@@ -307,4 +306,3 @@ export function LandingPage() {
     </div>
   );
 }
-

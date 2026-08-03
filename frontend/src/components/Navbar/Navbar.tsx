@@ -1,7 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import {
-  FiBriefcase,
   FiGrid,
   FiLogIn,
   FiMenu,
@@ -12,6 +11,7 @@ import {
 } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 
+import { BrandLogo } from '@/components/BrandLogo';
 import { APP_NAME } from '@/constants/app';
 import { navItems } from '@/constants/landing';
 import { useAuth } from '@/hooks/useAuth';
@@ -44,9 +44,7 @@ export function Navbar() {
     <header className="fixed inset-x-0 top-0 z-50 border-b border-white/45 bg-white/75 shadow-sm shadow-slate-900/5 backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/70">
       <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <a className="flex items-center gap-3" href="#home" onClick={() => setIsMenuOpen(false)}>
-          <span className="grid size-10 place-items-center rounded-lg bg-slate-950 text-white shadow-lg shadow-cyan-900/20 dark:bg-white dark:text-slate-950">
-            <FiBriefcase aria-hidden="true" className="size-5" />
-          </span>
+          <BrandLogo className="size-10 shadow-lg shadow-cyan-900/20" />
           <span className="text-lg font-bold tracking-normal text-slate-950 dark:text-white">
             {APP_NAME}
           </span>
