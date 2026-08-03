@@ -316,6 +316,40 @@ def test_candidate_resume_upload_rejects_unsupported_file(client: TestClient) ->
     assert response.json()["detail"] == "Only PDF and DOCX resumes are supported"
 
 
+def test_jobs_placeholder_list_supports_search_and_pagination(client: TestClient) -> None:
+    response = client.get("/api/v1/jobs", params={"search": "React", "page": 1, "page_size": 3})
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["total"] >= 3
+    assert len(payload["jobs"]) == 3
+    assert all("React" in job["skills"] or "React" in job["title"] for job in payload["jobs"])
+
+
+def test_candidate_job_management_placeholder_endpoints(client: TestClient) -> None:
+    auth_payload = register_candidate(client)
+    headers = {"Authorization": f"Bearer {auth_payload['access_token']}"}
+
+    saved_jobs = client.get("/api/v1/candidate/saved-jobs", headers=headers)
+    applied_jobs = client.get("/api/v1/candidate/applied-jobs", headers=headers)
+    save_job = client.post(
+        "/api/v1/candidate/save-job", headers=headers, json={"job_id": "job-002"}
+    )
+    apply_job = client.post(
+        "/api/v1/candidate/apply-job", headers=headers, json={"job_id": "job-002"}
+    )
+
+    assert saved_jobs.status_code == 200
+    assert saved_jobs.json()["total"] >= 1
+    assert applied_jobs.status_code == 200
+    assert applied_jobs.json()["total"] >= 1
+    assert applied_jobs.json()["applications"][0]["timeline"]
+    assert save_job.status_code == 200
+    assert save_job.json()["status"] == "saved"
+    assert apply_job.status_code == 200
+    assert apply_job.json()["status"] == "applied"
+
+
 def test_refresh_token_rotation_revokes_old_token(client: TestClient) -> None:
     auth_payload = register_candidate(client)
     old_refresh_token = auth_payload["refresh_token"]

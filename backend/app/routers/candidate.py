@@ -5,12 +5,22 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 
 from app.auth.dependencies import require_roles
 from app.models.user import User, UserRole
+from app.routers.jobs import _jobs
 from app.schemas.candidate import (
     CandidateProfilePayload,
     CandidateProfileResponse,
     CandidateResumeFile,
     CandidateResumeHistoryItem,
     CandidateResumeResponse,
+)
+from app.schemas.jobs import (
+    ApplicationTimelineItem,
+    CandidateApplication,
+    CandidateAppliedJobsResponse,
+    CandidateJobActionPayload,
+    CandidateJobActionResponse,
+    JobListResponse,
+    JobPosting,
 )
 
 router = APIRouter(prefix="/candidate")
@@ -116,6 +126,62 @@ async def delete_candidate_resume(
     return CandidateResumeResponse(current_resume=None, history=_candidate_resume_history())
 
 
+@router.get("/saved-jobs")
+async def get_saved_jobs(
+    current_user: Annotated[User, Depends(require_roles(UserRole.CANDIDATE))],
+) -> JobListResponse:
+    saved_jobs = [job for job in _jobs() if job.is_saved]
+    return JobListResponse(
+        jobs=saved_jobs,
+        total=len(saved_jobs),
+        page=1,
+        page_size=len(saved_jobs),
+    )
+
+
+@router.get("/applied-jobs")
+async def get_applied_jobs(
+    current_user: Annotated[User, Depends(require_roles(UserRole.CANDIDATE))],
+) -> CandidateAppliedJobsResponse:
+    applications = _candidate_applications()
+    return CandidateAppliedJobsResponse(
+        applications=applications,
+        total=len(applications),
+        status_counts={"Applied": 1, "Interview": 1, "Review": 1},
+        chart=[
+            {"label": "Apr", "applications": 2},
+            {"label": "May", "applications": 4},
+            {"label": "Jun", "applications": 6},
+            {"label": "Jul", "applications": 5},
+            {"label": "Aug", "applications": 3},
+        ],
+    )
+
+
+@router.post("/save-job")
+async def save_candidate_job(
+    payload: CandidateJobActionPayload,
+    current_user: Annotated[User, Depends(require_roles(UserRole.CANDIDATE))],
+) -> CandidateJobActionResponse:
+    return CandidateJobActionResponse(
+        job_id=payload.job_id,
+        status="saved",
+        message="Job saved to candidate workspace.",
+    )
+
+
+@router.post("/apply-job")
+async def apply_candidate_job(
+    payload: CandidateJobActionPayload,
+    current_user: Annotated[User, Depends(require_roles(UserRole.CANDIDATE))],
+) -> CandidateJobActionResponse:
+    return CandidateJobActionResponse(
+        job_id=payload.job_id,
+        status="applied",
+        message="Application placeholder submitted.",
+    )
+
+
 def _candidate_profile_payload(user: User) -> CandidateProfileResponse:
     return CandidateProfileResponse(
         uuid=user.uuid,
@@ -196,3 +262,58 @@ def _resume_extension(filename: str | None) -> str:
         return ""
 
     return f".{filename.rsplit('.', maxsplit=1)[-1].lower()}"
+
+
+def _candidate_applications() -> list[CandidateApplication]:
+    applied_jobs = [job for job in _jobs() if job.is_applied]
+    review_job = JobPosting(
+        id="job-009",
+        title="React Dashboard Engineer",
+        company="MetricLoop",
+        location="Remote, United States",
+        work_mode="Remote",
+        employment_type="Full-time",
+        salary_range="$130k - $165k",
+        match_score=86,
+        posted_at="2026-07-18",
+        experience_level="Mid-Senior",
+        skills=["React", "Charts", "TypeScript", "Accessibility"],
+        is_saved=True,
+        is_applied=True,
+        description="Build analytical dashboards for candidate and recruiter workflows.",
+    )
+    jobs = [*applied_jobs, review_job]
+    statuses = ["Interview", "Applied", "Review"]
+    return [
+        CandidateApplication(
+            id=f"application-{index + 1}",
+            job=job,
+            status=statuses[index],
+            applied_at=f"2026-0{6 + index}-1{index}T10:00:00+00:00",
+            updated_at=f"2026-08-0{index + 1}T09:00:00+00:00",
+            timeline=[
+                ApplicationTimelineItem(
+                    id=f"application-{index + 1}-submitted",
+                    label="Application Submitted",
+                    description=f"Your application for {job.title} was received.",
+                    occurred_at=f"2026-0{6 + index}-1{index}T10:00:00+00:00",
+                    status="complete",
+                ),
+                ApplicationTimelineItem(
+                    id=f"application-{index + 1}-review",
+                    label="Recruiter Review",
+                    description="The hiring team is reviewing your profile and resume.",
+                    occurred_at=f"2026-0{6 + index}-1{index + 1}T13:30:00+00:00",
+                    status="active" if statuses[index] != "Applied" else "pending",
+                ),
+                ApplicationTimelineItem(
+                    id=f"application-{index + 1}-interview",
+                    label="Interview",
+                    description="Interview scheduling placeholder.",
+                    occurred_at=f"2026-08-0{index + 4}T16:00:00+00:00",
+                    status="active" if statuses[index] == "Interview" else "pending",
+                ),
+            ],
+        )
+        for index, job in enumerate(jobs)
+    ]

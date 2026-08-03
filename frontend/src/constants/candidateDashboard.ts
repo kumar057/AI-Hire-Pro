@@ -2,6 +2,7 @@ import {
   FiBell,
   FiBookmark,
   FiBriefcase,
+  FiClock,
   FiCompass,
   FiFileText,
   FiHelpCircle,
@@ -47,7 +48,7 @@ export const CANDIDATE_NAV_ITEMS: CandidateNavItem[] = [
   },
   {
     id: 'jobs',
-    label: 'Jobs',
+    label: 'Recommended Jobs',
     to: '/candidate/dashboard/jobs',
     icon: FiBriefcase,
   },
@@ -62,6 +63,12 @@ export const CANDIDATE_NAV_ITEMS: CandidateNavItem[] = [
     label: 'Applied Jobs',
     to: '/candidate/dashboard/applied-jobs',
     icon: FiTarget,
+  },
+  {
+    id: 'application-history',
+    label: 'Application History',
+    to: '/candidate/dashboard/application-history',
+    icon: FiClock,
   },
   {
     id: 'notifications',

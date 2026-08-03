@@ -4,9 +4,10 @@ import { Link, useLocation } from 'react-router-dom';
 const LABELS: Record<string, string> = {
   profile: 'My Profile',
   resume: 'Resume',
-  jobs: 'Jobs',
+  jobs: 'Recommended Jobs',
   'saved-jobs': 'Saved Jobs',
   'applied-jobs': 'Applied Jobs',
+  'application-history': 'Application History',
   notifications: 'Notifications',
   messages: 'Messages',
   settings: 'Settings',

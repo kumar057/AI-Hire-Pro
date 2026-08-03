@@ -57,6 +57,11 @@ const AppliedJobsPage = lazy(() =>
     default: module.AppliedJobsPage,
   })),
 );
+const ApplicationHistoryPage = lazy(() =>
+  import('@/pages/candidate/ApplicationHistoryPage').then((module) => ({
+    default: module.ApplicationHistoryPage,
+  })),
+);
 const NotificationsPage = lazy(() =>
   import('@/pages/candidate/NotificationsPage').then((module) => ({
     default: module.NotificationsPage,
@@ -104,6 +109,7 @@ export function AppRoutes() {
             <Route element={<JobsPage />} path="jobs" />
             <Route element={<SavedJobsPage />} path="saved-jobs" />
             <Route element={<AppliedJobsPage />} path="applied-jobs" />
+            <Route element={<ApplicationHistoryPage />} path="application-history" />
             <Route element={<NotificationsPage />} path="notifications" />
             <Route element={<MessagesPage />} path="messages" />
             <Route element={<SettingsPage />} path="settings" />
