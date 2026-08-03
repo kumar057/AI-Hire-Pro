@@ -47,6 +47,12 @@ export const CANDIDATE_NAV_ITEMS: CandidateNavItem[] = [
     icon: FiFileText,
   },
   {
+    id: 'resume-analyzer',
+    label: 'AI Resume Analyzer',
+    to: '/candidate/dashboard/resume-analyzer',
+    icon: FiZap,
+  },
+  {
     id: 'jobs',
     label: 'Recommended Jobs',
     to: '/candidate/dashboard/jobs',
@@ -214,9 +220,9 @@ export const CANDIDATE_QUICK_ACTIONS: CandidateQuickAction[] = [
   {
     id: 'ai-resume-review',
     label: 'AI Resume Review',
-    description: 'Reserve space for AI coaching.',
+    description: 'Review your dummy resume intelligence report.',
     icon: FiZap,
-    to: '/candidate/dashboard/resume',
+    to: '/candidate/dashboard/resume-analyzer',
     tone: 'from-fuchsia-500 to-rose-600',
   },
 ];

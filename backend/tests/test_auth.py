@@ -350,6 +350,30 @@ def test_candidate_job_management_placeholder_endpoints(client: TestClient) -> N
     assert apply_job.json()["status"] == "applied"
 
 
+def test_candidate_resume_analysis_placeholder_endpoints(client: TestClient) -> None:
+    auth_payload = register_candidate(client)
+    headers = {"Authorization": f"Bearer {auth_payload['access_token']}"}
+
+    report = client.get("/api/v1/ai/report", headers=headers)
+    analysis = client.post(
+        "/api/v1/ai/resume-analysis",
+        headers=headers,
+        json={"resume_id": "resume-current"},
+    )
+
+    assert report.status_code == 200
+    assert analysis.status_code == 200
+    assert report.json()["ats_score"] == 86
+    assert analysis.json()["job_match"] == 82
+    assert len(analysis.json()["sections"]) == 4
+
+
+def test_resume_analysis_requires_candidate_authentication(client: TestClient) -> None:
+    response = client.get("/api/v1/ai/report")
+
+    assert response.status_code == 401
+
+
 def test_refresh_token_rotation_revokes_old_token(client: TestClient) -> None:
     auth_payload = register_candidate(client)
     old_refresh_token = auth_payload["refresh_token"]

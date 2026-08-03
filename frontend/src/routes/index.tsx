@@ -46,6 +46,11 @@ const MyProfilePage = lazy(() =>
 const ResumePage = lazy(() =>
   import('@/pages/candidate/ResumePage').then((module) => ({ default: module.ResumePage })),
 );
+const ResumeAnalyzerPage = lazy(() =>
+  import('@/pages/candidate/ResumeAnalyzerPage').then((module) => ({
+    default: module.ResumeAnalyzerPage,
+  })),
+);
 const JobsPage = lazy(() =>
   import('@/pages/candidate/JobsPage').then((module) => ({ default: module.JobsPage })),
 );
@@ -106,6 +111,7 @@ export function AppRoutes() {
             <Route element={<CandidateDashboardHome />} index />
             <Route element={<MyProfilePage />} path="profile" />
             <Route element={<ResumePage />} path="resume" />
+            <Route element={<ResumeAnalyzerPage />} path="resume-analyzer" />
             <Route element={<JobsPage />} path="jobs" />
             <Route element={<SavedJobsPage />} path="saved-jobs" />
             <Route element={<AppliedJobsPage />} path="applied-jobs" />
