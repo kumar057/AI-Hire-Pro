@@ -27,9 +27,6 @@ const ProfileSetupPage = lazy(() =>
     default: module.ProfileSetupPage,
   })),
 );
-const DashboardPage = lazy(() =>
-  import('@/pages/auth/DashboardPage').then((module) => ({ default: module.DashboardPage })),
-);
 const CandidateDashboardLayout = lazy(() =>
   import('@/layouts/CandidateDashboardLayout').then((module) => ({
     default: module.CandidateDashboardLayout,
@@ -132,6 +129,28 @@ const CompanySettingsPage = lazy(() =>
 const CompanyHelpPage = lazy(() =>
   import('@/pages/company/CompanyWorkspacePages').then((module) => ({ default: module.CompanyHelpPage })),
 );
+const AdminDashboardLayout = lazy(() =>
+  import('@/layouts/AdminDashboardLayout').then((module) => ({ default: module.AdminDashboardLayout })),
+);
+const AdminDashboardHome = lazy(() =>
+  import('@/pages/admin/AdminDashboardHome').then((module) => ({ default: module.AdminDashboardHome })),
+);
+const AdminManagementPage = lazy(() =>
+  import('@/pages/admin/AdminManagementPage').then((module) => ({ default: module.AdminManagementPage })),
+);
+const AdminAnalyticsPage = lazy(() =>
+  import('@/pages/admin/AdminAnalyticsPage').then((module) => ({ default: module.AdminAnalyticsPage })),
+);
+const AdminReportsPage = lazy(() =>
+  import('@/pages/admin/AdminReportsPage').then((module) => ({ default: module.AdminReportsPage })),
+);
+const AdminActivityPage = lazy(() => import('@/pages/admin/AdminOperationsPages').then((module) => ({ default: module.AdminActivityPage })));
+const AdminAuditPage = lazy(() => import('@/pages/admin/AdminOperationsPages').then((module) => ({ default: module.AdminAuditPage })));
+const AdminSupportPage = lazy(() => import('@/pages/admin/AdminOperationsPages').then((module) => ({ default: module.AdminSupportPage })));
+const AdminNotificationsPage = lazy(() => import('@/pages/admin/AdminOperationsPages').then((module) => ({ default: module.AdminNotificationsPage })));
+const AdminFeedbackPage = lazy(() => import('@/pages/admin/AdminOperationsPages').then((module) => ({ default: module.AdminFeedbackPage })));
+const AdminAISettingsPage = lazy(() => import('@/pages/admin/AdminOperationsPages').then((module) => ({ default: module.AdminAISettingsPage })));
+const AdminSettingsPage = lazy(() => import('@/pages/admin/AdminOperationsPages').then((module) => ({ default: module.AdminSettingsPage })));
 
 function PageLoader() {
   return (
@@ -190,7 +209,22 @@ export function AppRoutes() {
           </Route>
         </Route>
         <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
-          <Route element={<DashboardPage role="admin" />} path="/admin/dashboard" />
+          <Route element={<AdminDashboardLayout />} path="/admin/dashboard">
+            <Route element={<AdminDashboardHome />} index />
+            <Route element={<AdminManagementPage resource="users" />} path="users" />
+            <Route element={<AdminManagementPage resource="companies" />} path="companies" />
+            <Route element={<AdminManagementPage resource="jobs" />} path="jobs" />
+            <Route element={<AdminManagementPage resource="applications" />} path="applications" />
+            <Route element={<AdminReportsPage />} path="reports" />
+            <Route element={<AdminAnalyticsPage />} path="analytics" />
+            <Route element={<AdminNotificationsPage />} path="notifications" />
+            <Route element={<AdminActivityPage />} path="activity" />
+            <Route element={<AdminAuditPage />} path="audit" />
+            <Route element={<AdminSupportPage />} path="support" />
+            <Route element={<AdminFeedbackPage />} path="feedback" />
+            <Route element={<AdminAISettingsPage />} path="ai-settings" />
+            <Route element={<AdminSettingsPage />} path="settings" />
+          </Route>
         </Route>
         <Route element={<Navigate replace to="/" />} path="*" />
       </Routes>

@@ -443,6 +443,51 @@ def test_candidate_cannot_access_company_dashboard(client: TestClient) -> None:
     assert response.status_code == 403
 
 
+def test_admin_dashboard_placeholder_endpoints(client: TestClient) -> None:
+    asyncio.run(seed_admin(client))
+    login = client.post(
+        "/api/v1/auth/login",
+        json={"email": "admin@example.com", "password": "AdminSecure123!"},
+    )
+    headers = {"Authorization": f"Bearer {login.json()['access_token']}"}
+
+    dashboard = client.get("/api/v1/admin/dashboard", headers=headers)
+    users = client.get("/api/v1/admin/users", headers=headers)
+    companies = client.get("/api/v1/admin/companies", headers=headers)
+    jobs = client.get("/api/v1/admin/jobs", headers=headers)
+    applications = client.get("/api/v1/admin/applications", headers=headers)
+    reports = client.get("/api/v1/admin/reports", headers=headers)
+
+    assert dashboard.status_code == 200
+    assert dashboard.json()["summary"]["total_users"] == 128420
+    assert users.status_code == 200
+    assert users.json()["total"] == 6
+    assert companies.status_code == 200
+    assert jobs.status_code == 200
+    assert applications.status_code == 200
+    assert reports.status_code == 200
+
+
+def test_candidate_cannot_access_admin_dashboard(client: TestClient) -> None:
+    auth_payload = register_candidate(client)
+    response = client.get(
+        "/api/v1/admin/dashboard",
+        headers={"Authorization": f"Bearer {auth_payload['access_token']}"},
+    )
+
+    assert response.status_code == 403
+
+
+def test_company_cannot_access_admin_dashboard(client: TestClient) -> None:
+    auth_payload = register_company(client)
+    response = client.get(
+        "/api/v1/admin/dashboard",
+        headers={"Authorization": f"Bearer {auth_payload['access_token']}"},
+    )
+
+    assert response.status_code == 403
+
+
 def test_refresh_token_rotation_revokes_old_token(client: TestClient) -> None:
     auth_payload = register_candidate(client)
     old_refresh_token = auth_payload["refresh_token"]

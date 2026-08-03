@@ -104,5 +104,20 @@ describe('route guards', () => {
     expect(screen.getByText('company dashboard')).toBeInTheDocument();
     expect(screen.getByText('location:/company/dashboard')).toBeInTheDocument();
   });
-});
 
+  it('redirects company users away from admin routes', () => {
+    renderWithAuth(
+      { user: makeUser('company'), isAuthenticated: true },
+      '/admin/dashboard',
+      <Routes>
+        <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+          <Route element={<div>admin dashboard</div>} path="/admin/dashboard" />
+        </Route>
+        <Route element={<div>company dashboard</div>} path="/company/dashboard" />
+      </Routes>,
+    );
+
+    expect(screen.getByText('company dashboard')).toBeInTheDocument();
+    expect(screen.getByText('location:/company/dashboard')).toBeInTheDocument();
+  });
+});
