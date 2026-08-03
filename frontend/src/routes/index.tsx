@@ -101,6 +101,15 @@ const ManageJobsPage = lazy(() =>
     default: module.ManageJobsPage,
   })),
 );
+const EditJobPage = lazy(() =>
+  import('@/pages/company/EditJobPage').then((module) => ({ default: module.EditJobPage })),
+);
+const JobPreviewPage = lazy(() =>
+  import('@/pages/company/JobPreviewPage').then((module) => ({ default: module.JobPreviewPage })),
+);
+const JobAnalyticsPage = lazy(() =>
+  import('@/pages/company/JobAnalyticsPage').then((module) => ({ default: module.JobAnalyticsPage })),
+);
 const ApplicantsPage = lazy(() =>
   import('@/pages/company/ApplicantsPage').then((module) => ({
     default: module.ApplicantsPage,
@@ -198,6 +207,9 @@ export function AppRoutes() {
             <Route element={<CompanyProfilePage />} path="profile" />
             <Route element={<PostJobPage />} path="post-job" />
             <Route element={<ManageJobsPage />} path="jobs" />
+            <Route element={<EditJobPage />} path="jobs/:jobId/edit" />
+            <Route element={<JobPreviewPage />} path="jobs/:jobId/preview" />
+            <Route element={<JobAnalyticsPage />} path="jobs/:jobId/analytics" />
             <Route element={<ApplicantsPage />} path="applicants" />
             <Route element={<CompanyInterviewsPage />} path="interviews" />
             <Route element={<CompanyMessagesPage />} path="messages" />

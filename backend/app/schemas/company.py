@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import BaseModel, Field, HttpUrl
 
 
@@ -40,6 +42,7 @@ class CompanyProfileResponse(CompanyProfilePayload):
 
 class CompanyJobPayload(BaseModel):
     title: str = Field(min_length=2, max_length=160)
+    company: str = Field(default="Northstar Labs", min_length=2, max_length=160)
     department: str = Field(min_length=2, max_length=100)
     employment_type: str
     experience_level: str
@@ -47,13 +50,17 @@ class CompanyJobPayload(BaseModel):
     location: str
     work_mode: str
     skills: list[str] = Field(min_length=1)
+    preferred_skills: list[str] = Field(default_factory=list)
     education: str
     description: str = Field(min_length=20)
     responsibilities: list[str] = Field(min_length=1)
     requirements: list[str] = Field(min_length=1)
     benefits: list[str] = Field(default_factory=list)
+    openings: int = Field(default=1, ge=1, le=100)
+    category: str = Field(default="Engineering", min_length=2, max_length=100)
+    tags: list[str] = Field(default_factory=list)
     application_deadline: str
-    status: str = "draft"
+    status: Literal["draft", "published", "closed", "archived"] = "draft"
 
 
 class CompanyJobResponse(CompanyJobPayload):
@@ -66,6 +73,20 @@ class CompanyJobResponse(CompanyJobPayload):
 class CompanyJobListResponse(BaseModel):
     jobs: list[CompanyJobResponse]
     total: int
+
+
+class CompanyJobPublishPayload(BaseModel):
+    published: bool = True
+
+
+class CompanyJobAnalyticsResponse(BaseModel):
+    job_id: str
+    views: int
+    applications: int
+    shortlisted: int
+    interviews: int
+    conversion_rate: float
+    trend: list[dict[str, int | str]]
 
 
 class CompanyApplicant(BaseModel):
@@ -89,4 +110,3 @@ class CompanyAnalyticsResponse(BaseModel):
     applications_trend: list[dict[str, int | str]]
     hiring_funnel: list[dict[str, int | str]]
     job_performance: list[dict[str, int | str]]
-

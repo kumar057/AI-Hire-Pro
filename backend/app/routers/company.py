@@ -8,8 +8,10 @@ from app.schemas.company import (
     CompanyAnalyticsResponse,
     CompanyApplicantListResponse,
     CompanyDashboardResponse,
+    CompanyJobAnalyticsResponse,
     CompanyJobListResponse,
     CompanyJobPayload,
+    CompanyJobPublishPayload,
     CompanyJobResponse,
     CompanyProfilePayload,
     CompanyProfileResponse,
@@ -71,6 +73,12 @@ async def get_company_jobs(current_user: CompanyUser) -> CompanyJobListResponse:
     return CompanyJobListResponse(jobs=jobs, total=len(jobs))
 
 
+@router.get("/jobs/{job_id}")
+async def get_company_job(job_id: str, current_user: CompanyUser) -> CompanyJobResponse:
+    job = next((item for item in _jobs() if item.id == job_id), _jobs()[0])
+    return job.model_copy(update={"id": job_id})
+
+
 @router.put("/jobs/{job_id}")
 async def update_company_job(
     job_id: str, payload: CompanyJobPayload, current_user: CompanyUser
@@ -87,6 +95,43 @@ async def update_company_job(
 @router.delete("/jobs/{job_id}")
 async def delete_company_job(job_id: str, current_user: CompanyUser) -> dict[str, str]:
     return {"id": job_id, "status": "deleted", "message": "Dummy job deleted"}
+
+
+@router.patch("/jobs/{job_id}/publish")
+async def publish_company_job(
+    job_id: str, payload: CompanyJobPublishPayload, current_user: CompanyUser
+) -> CompanyJobResponse:
+    job = next((item for item in _jobs() if item.id == job_id), _jobs()[0])
+    next_status = "published" if payload.published else "draft"
+    return job.model_copy(update={"id": job_id, "status": next_status})
+
+
+@router.patch("/jobs/{job_id}/archive")
+async def archive_company_job(job_id: str, current_user: CompanyUser) -> CompanyJobResponse:
+    job = next((item for item in _jobs() if item.id == job_id), _jobs()[0])
+    return job.model_copy(update={"id": job_id, "status": "archived"})
+
+
+@router.get("/jobs/{job_id}/analytics")
+async def get_company_job_analytics(
+    job_id: str, current_user: CompanyUser
+) -> CompanyJobAnalyticsResponse:
+    return CompanyJobAnalyticsResponse(
+        job_id=job_id,
+        views=3240,
+        applications=142,
+        shortlisted=38,
+        interviews=16,
+        conversion_rate=4.9,
+        trend=[
+            {"label": "Mon", "views": 320, "applications": 14},
+            {"label": "Tue", "views": 410, "applications": 18},
+            {"label": "Wed", "views": 520, "applications": 24},
+            {"label": "Thu", "views": 610, "applications": 31},
+            {"label": "Fri", "views": 740, "applications": 36},
+            {"label": "Sat", "views": 640, "applications": 19},
+        ],
+    )
 
 
 @router.get("/applicants")
@@ -190,17 +235,22 @@ def _profile(user_id: str) -> CompanyProfileResponse:
 
 def _jobs() -> list[CompanyJobResponse]:
     base = {
+        "company": "Northstar Labs",
         "employment_type": "Full-time",
         "experience_level": "Senior",
         "salary_range": "$140k-$180k",
         "location": "San Francisco, CA",
         "work_mode": "Hybrid",
         "skills": ["React", "TypeScript"],
+        "preferred_skills": ["Design Systems", "Playwright"],
         "education": "Bachelor's degree or equivalent experience",
         "description": "Build high-quality product experiences for a growing enterprise platform.",
         "responsibilities": ["Own product delivery", "Mentor engineers"],
         "requirements": ["5+ years of experience", "Strong communication"],
         "benefits": ["Health coverage", "Learning budget"],
+        "openings": 2,
+        "category": "Engineering",
+        "tags": ["SaaS", "Enterprise"],
         "application_deadline": "2026-09-15",
     }
     return [
@@ -208,7 +258,7 @@ def _jobs() -> list[CompanyJobResponse]:
             id="company-job-1",
             title="Senior Frontend Engineer",
             department="Engineering",
-            status="active",
+            status="published",
             applications=142,
             views=3240,
             created_at="2026-07-18",
@@ -218,7 +268,7 @@ def _jobs() -> list[CompanyJobResponse]:
             id="company-job-2",
             title="Product Designer",
             department="Design",
-            status="active",
+            status="published",
             applications=98,
             views=2480,
             created_at="2026-07-22",

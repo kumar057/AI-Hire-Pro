@@ -420,17 +420,35 @@ def test_company_job_placeholder_mutations(client: TestClient) -> None:
         "requirements": ["Five years of experience"],
         "benefits": ["Remote-first"],
         "application_deadline": "2026-09-30",
-        "status": "active",
+        "status": "published",
     }
 
     created = client.post("/api/v1/company/jobs", headers=headers, json=payload)
     updated = client.put("/api/v1/company/jobs/job-1", headers=headers, json=payload)
     deleted = client.delete("/api/v1/company/jobs/job-1", headers=headers)
+    detail = client.get("/api/v1/company/jobs/company-job-1", headers=headers)
+    published = client.patch(
+        "/api/v1/company/jobs/company-job-3/publish",
+        headers=headers,
+        json={"published": True},
+    )
+    unpublished = client.patch(
+        "/api/v1/company/jobs/company-job-1/publish",
+        headers=headers,
+        json={"published": False},
+    )
+    archived = client.patch(
+        "/api/v1/company/jobs/company-job-1/archive", headers=headers
+    )
 
     assert created.status_code == 201
     assert updated.status_code == 200
     assert deleted.status_code == 200
     assert deleted.json()["status"] == "deleted"
+    assert detail.status_code == 200
+    assert published.json()["status"] == "published"
+    assert unpublished.json()["status"] == "draft"
+    assert archived.json()["status"] == "archived"
 
 
 def test_candidate_cannot_access_company_dashboard(client: TestClient) -> None:
@@ -438,6 +456,30 @@ def test_candidate_cannot_access_company_dashboard(client: TestClient) -> None:
     response = client.get(
         "/api/v1/company/dashboard",
         headers={"Authorization": f"Bearer {auth_payload['access_token']}"},
+    )
+
+    assert response.status_code == 403
+
+
+def test_candidate_cannot_access_company_jobs(client: TestClient) -> None:
+    auth_payload = register_candidate(client)
+    response = client.get(
+        "/api/v1/company/jobs",
+        headers={"Authorization": f"Bearer {auth_payload['access_token']}"},
+    )
+
+    assert response.status_code == 403
+
+
+def test_admin_cannot_access_company_jobs(client: TestClient) -> None:
+    asyncio.run(seed_admin(client))
+    login = client.post(
+        "/api/v1/auth/login",
+        json={"email": "admin@example.com", "password": "AdminSecure123!"},
+    )
+    response = client.get(
+        "/api/v1/company/jobs",
+        headers={"Authorization": f"Bearer {login.json()['access_token']}"},
     )
 
     assert response.status_code == 403

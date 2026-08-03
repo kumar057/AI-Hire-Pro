@@ -18,8 +18,8 @@ import type { CompanyNavItem } from '@/types/company';
 export const COMPANY_NAV_ITEMS: CompanyNavItem[] = [
   { id: 'dashboard', label: 'Dashboard', to: '/company/dashboard', icon: FiHome, end: true },
   { id: 'profile', label: 'Company Profile', to: '/company/dashboard/profile', icon: FiUsers },
-  { id: 'post-job', label: 'Post Job', to: '/company/dashboard/post-job', icon: FiFilePlus },
-  { id: 'manage-jobs', label: 'Manage Jobs', to: '/company/dashboard/jobs', icon: FiBriefcase },
+  { id: 'post-job', label: 'Create Job', to: '/company/dashboard/post-job', icon: FiFilePlus },
+  { id: 'manage-jobs', label: 'My Jobs', to: '/company/dashboard/jobs', icon: FiBriefcase },
   { id: 'applicants', label: 'Applicants', to: '/company/dashboard/applicants', icon: FiUserCheck },
   { id: 'interviews', label: 'Interviews', to: '/company/dashboard/interviews', icon: FiCalendar },
   { id: 'messages', label: 'Messages', to: '/company/dashboard/messages', icon: FiMessageSquare },
@@ -38,4 +38,3 @@ export const COMPANY_METRICS = [
   { key: 'hired_candidates', label: 'Hired', helper: 'Successful placements', icon: FiUserCheck, tone: 'text-rose-700 bg-rose-50 dark:text-rose-200 dark:bg-rose-300/10' },
   { key: 'company_views', label: 'Company Views', helper: 'This month', icon: FiBarChart2, tone: 'text-blue-700 bg-blue-50 dark:text-blue-200 dark:bg-blue-300/10' },
 ] as const;
-
