@@ -81,6 +81,57 @@ const SettingsPage = lazy(() =>
 const HelpPage = lazy(() =>
   import('@/pages/candidate/HelpPage').then((module) => ({ default: module.HelpPage })),
 );
+const CompanyDashboardLayout = lazy(() =>
+  import('@/layouts/CompanyDashboardLayout').then((module) => ({
+    default: module.CompanyDashboardLayout,
+  })),
+);
+const CompanyDashboardHome = lazy(() =>
+  import('@/pages/company/CompanyDashboardHome').then((module) => ({
+    default: module.CompanyDashboardHome,
+  })),
+);
+const CompanyProfilePage = lazy(() =>
+  import('@/pages/company/CompanyProfilePage').then((module) => ({
+    default: module.CompanyProfilePage,
+  })),
+);
+const PostJobPage = lazy(() =>
+  import('@/pages/company/PostJobPage').then((module) => ({ default: module.PostJobPage })),
+);
+const ManageJobsPage = lazy(() =>
+  import('@/pages/company/ManageJobsPage').then((module) => ({
+    default: module.ManageJobsPage,
+  })),
+);
+const ApplicantsPage = lazy(() =>
+  import('@/pages/company/ApplicantsPage').then((module) => ({
+    default: module.ApplicantsPage,
+  })),
+);
+const CompanyAnalyticsPage = lazy(() =>
+  import('@/pages/company/CompanyAnalyticsPage').then((module) => ({
+    default: module.CompanyAnalyticsPage,
+  })),
+);
+const CompanyInterviewsPage = lazy(() =>
+  import('@/pages/company/CompanyWorkspacePages').then((module) => ({ default: module.CompanyInterviewsPage })),
+);
+const CompanyMessagesPage = lazy(() =>
+  import('@/pages/company/CompanyWorkspacePages').then((module) => ({ default: module.CompanyMessagesPage })),
+);
+const CompanyNotificationsPage = lazy(() =>
+  import('@/pages/company/CompanyWorkspacePages').then((module) => ({ default: module.CompanyNotificationsPage })),
+);
+const CompanySubscriptionPage = lazy(() =>
+  import('@/pages/company/CompanyWorkspacePages').then((module) => ({ default: module.CompanySubscriptionPage })),
+);
+const CompanySettingsPage = lazy(() =>
+  import('@/pages/company/CompanyWorkspacePages').then((module) => ({ default: module.CompanySettingsPage })),
+);
+const CompanyHelpPage = lazy(() =>
+  import('@/pages/company/CompanyWorkspacePages').then((module) => ({ default: module.CompanyHelpPage })),
+);
 
 function PageLoader() {
   return (
@@ -123,7 +174,20 @@ export function AppRoutes() {
           </Route>
         </Route>
         <Route element={<ProtectedRoute allowedRoles={['company']} />}>
-          <Route element={<DashboardPage role="company" />} path="/company/dashboard" />
+          <Route element={<CompanyDashboardLayout />} path="/company/dashboard">
+            <Route element={<CompanyDashboardHome />} index />
+            <Route element={<CompanyProfilePage />} path="profile" />
+            <Route element={<PostJobPage />} path="post-job" />
+            <Route element={<ManageJobsPage />} path="jobs" />
+            <Route element={<ApplicantsPage />} path="applicants" />
+            <Route element={<CompanyInterviewsPage />} path="interviews" />
+            <Route element={<CompanyMessagesPage />} path="messages" />
+            <Route element={<CompanyNotificationsPage />} path="notifications" />
+            <Route element={<CompanyAnalyticsPage />} path="analytics" />
+            <Route element={<CompanySubscriptionPage />} path="subscription" />
+            <Route element={<CompanySettingsPage />} path="settings" />
+            <Route element={<CompanyHelpPage />} path="help" />
+          </Route>
         </Route>
         <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
           <Route element={<DashboardPage role="admin" />} path="/admin/dashboard" />

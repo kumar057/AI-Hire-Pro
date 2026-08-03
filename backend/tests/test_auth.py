@@ -47,6 +47,12 @@ def register_candidate(client: TestClient) -> dict[str, object]:
     return response.json()
 
 
+def register_company(client: TestClient) -> dict[str, object]:
+    response = client.post("/api/v1/auth/register", json=company_payload())
+    assert response.status_code == 201
+    return response.json()
+
+
 async def get_user_by_email(client: TestClient, email: str) -> User:
     session_factory = client.app.state.test_session_factory
     async with session_factory() as session:
@@ -372,6 +378,69 @@ def test_resume_analysis_requires_candidate_authentication(client: TestClient) -
     response = client.get("/api/v1/ai/report")
 
     assert response.status_code == 401
+
+
+def test_company_dashboard_placeholder_endpoints(client: TestClient) -> None:
+    auth_payload = register_company(client)
+    headers = {"Authorization": f"Bearer {auth_payload['access_token']}"}
+
+    dashboard = client.get("/api/v1/company/dashboard", headers=headers)
+    profile = client.get("/api/v1/company/profile", headers=headers)
+    jobs = client.get("/api/v1/company/jobs", headers=headers)
+    applicants = client.get("/api/v1/company/applicants", headers=headers)
+    analytics = client.get("/api/v1/company/analytics", headers=headers)
+
+    assert dashboard.status_code == 200
+    assert dashboard.json()["summary"]["active_jobs"] == 8
+    assert profile.status_code == 200
+    assert profile.json()["company_name"] == "Northstar Labs"
+    assert jobs.status_code == 200
+    assert jobs.json()["total"] == 4
+    assert applicants.status_code == 200
+    assert applicants.json()["total"] == 4
+    assert analytics.status_code == 200
+    assert len(analytics.json()["hiring_funnel"]) == 5
+
+
+def test_company_job_placeholder_mutations(client: TestClient) -> None:
+    auth_payload = register_company(client)
+    headers = {"Authorization": f"Bearer {auth_payload['access_token']}"}
+    payload = {
+        "title": "Platform Engineer",
+        "department": "Engineering",
+        "employment_type": "Full-time",
+        "experience_level": "Senior",
+        "salary_range": "$150k-$190k",
+        "location": "Remote",
+        "work_mode": "Remote",
+        "skills": ["Python", "Kubernetes"],
+        "education": "Equivalent experience",
+        "description": "Build reliable infrastructure for the AIHire Pro platform.",
+        "responsibilities": ["Own platform reliability"],
+        "requirements": ["Five years of experience"],
+        "benefits": ["Remote-first"],
+        "application_deadline": "2026-09-30",
+        "status": "active",
+    }
+
+    created = client.post("/api/v1/company/jobs", headers=headers, json=payload)
+    updated = client.put("/api/v1/company/jobs/job-1", headers=headers, json=payload)
+    deleted = client.delete("/api/v1/company/jobs/job-1", headers=headers)
+
+    assert created.status_code == 201
+    assert updated.status_code == 200
+    assert deleted.status_code == 200
+    assert deleted.json()["status"] == "deleted"
+
+
+def test_candidate_cannot_access_company_dashboard(client: TestClient) -> None:
+    auth_payload = register_candidate(client)
+    response = client.get(
+        "/api/v1/company/dashboard",
+        headers={"Authorization": f"Bearer {auth_payload['access_token']}"},
+    )
+
+    assert response.status_code == 403
 
 
 def test_refresh_token_rotation_revokes_old_token(client: TestClient) -> None:
