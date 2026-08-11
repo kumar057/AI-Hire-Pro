@@ -48,6 +48,11 @@ const ResumeAnalyzerPage = lazy(() =>
     default: module.ResumeAnalyzerPage,
   })),
 );
+const ResumeUploadPage = lazy(() =>
+  import('@/pages/shared/ResumeUploadPage').then((module) => ({
+    default: module.default,
+  })),
+);
 const JobsPage = lazy(() =>
   import('@/pages/candidate/JobsPage').then((module) => ({ default: module.JobsPage })),
 );
@@ -311,6 +316,7 @@ export function AppRoutes() {
             <Route element={<MyProfilePage />} path="profile" />
             <Route element={<ResumePage />} path="resume" />
             <Route element={<ResumeAnalyzerPage />} path="resume-analyzer" />
+            <Route element={<ResumeUploadPage />} path="resume-upload" />
             <Route element={<JobsPage />} path="jobs" />
             <Route element={<JobDiscoveryPage mode="search" />} path="jobs/search" />
             <Route element={<JobDiscoveryPage mode="featured" />} path="jobs/featured" />
