@@ -432,9 +432,7 @@ def test_company_application_management_and_candidate_mutation_denial(
             "quick_apply": True,
         },
     )
-    forbidden_withdraw = client.delete(
-        "/api/v1/applications/application-2", headers=headers
-    )
+    forbidden_withdraw = client.delete("/api/v1/applications/application-2", headers=headers)
 
     assert applications.status_code == 200
     assert applications.json()["total"] == 4
@@ -460,9 +458,7 @@ def test_admin_has_read_only_application_access(client: TestClient) -> None:
         headers=headers,
         json={"status": "Rejected", "note": ""},
     )
-    forbidden_withdraw = client.delete(
-        "/api/v1/applications/application-1", headers=headers
-    )
+    forbidden_withdraw = client.delete("/api/v1/applications/application-1", headers=headers)
 
     assert detail.status_code == 200
     assert forbidden_status.status_code == 403
@@ -496,9 +492,7 @@ def test_company_recruiter_candidate_workflow(client: TestClient) -> None:
     assert detail.status_code == 200
     assert detail.json()["education"]
     assert moved.json()["candidate"]["status"] == "Screening"
-    assert noted.json()["candidate"]["notes"][-1]["content"] == (
-        "Strong architecture discussion."
-    )
+    assert noted.json()["candidate"]["notes"][-1]["content"] == ("Strong architecture discussion.")
     assert rated.json()["candidate"]["rating"] == 5
 
 
@@ -620,9 +614,7 @@ def test_company_job_placeholder_mutations(client: TestClient) -> None:
         headers=headers,
         json={"published": False},
     )
-    archived = client.patch(
-        "/api/v1/company/jobs/company-job-1/archive", headers=headers
-    )
+    archived = client.patch("/api/v1/company/jobs/company-job-1/archive", headers=headers)
 
     assert created.status_code == 201
     assert updated.status_code == 200
@@ -755,6 +747,83 @@ def test_non_admin_roles_cannot_access_job_moderation(client: TestClient) -> Non
     assert company_response.status_code == 403
 
 
+def test_notification_center_and_activity_feed(client: TestClient) -> None:
+    auth = register_candidate(client)
+    headers = {"Authorization": f"Bearer {auth['access_token']}"}
+
+    notifications = client.get(
+        "/api/v1/notifications",
+        params={"read": "false", "page_size": 2},
+        headers=headers,
+    )
+    assert notifications.status_code == 200
+    payload = notifications.json()
+    assert len(payload["notifications"]) == 2
+    assert payload["unread_count"] >= 2
+    assert all(not item["is_read"] for item in payload["notifications"])
+    notification_id = payload["notifications"][0]["id"]
+
+    assert (
+        client.patch(
+            f"/api/v1/notifications/{notification_id}/read",
+            headers=headers,
+        ).status_code
+        == 200
+    )
+    assert client.patch("/api/v1/notifications/read-all", headers=headers).status_code == 200
+    assert (
+        client.delete(
+            f"/api/v1/notifications/{notification_id}",
+            headers=headers,
+        ).status_code
+        == 200
+    )
+    assert client.delete("/api/v1/notifications", headers=headers).status_code == 200
+
+    activity = client.get("/api/v1/activity-feed", headers=headers)
+    assert activity.status_code == 200
+    assert {item["category"] for item in activity.json()["activities"]} >= {
+        "candidate",
+        "recruiter",
+        "admin",
+        "system",
+    }
+
+
+def test_notifications_enforce_owner_scope(client: TestClient) -> None:
+    candidate = register_candidate(client)
+    company = register_company(client)
+    company_headers = {"Authorization": f"Bearer {company['access_token']}"}
+    candidate_id = client.get(
+        "/api/v1/notifications",
+        headers={"Authorization": f"Bearer {candidate['access_token']}"},
+    ).json()["notifications"][0]["id"]
+
+    response = client.patch(
+        f"/api/v1/notifications/{candidate_id}/read",
+        headers=company_headers,
+    )
+    assert response.status_code == 403
+
+
+def test_admin_receives_system_notifications(client: TestClient) -> None:
+    asyncio.run(seed_admin(client))
+    login = client.post(
+        "/api/v1/auth/login",
+        json={"email": "admin@example.com", "password": "AdminSecure123!"},
+    )
+    headers = {"Authorization": f"Bearer {login.json()['access_token']}"}
+    response = client.get(
+        "/api/v1/notifications",
+        params={"type": "system"},
+        headers=headers,
+    )
+
+    assert response.status_code == 200
+    assert response.json()["notifications"]
+    assert all(item["type"] == "system" for item in response.json()["notifications"])
+
+
 def test_candidate_cannot_access_admin_dashboard(client: TestClient) -> None:
     auth_payload = register_candidate(client)
     response = client.get(
@@ -779,12 +848,8 @@ def test_refresh_token_rotation_revokes_old_token(client: TestClient) -> None:
     auth_payload = register_candidate(client)
     old_refresh_token = auth_payload["refresh_token"]
 
-    first_refresh = client.post(
-        "/api/v1/auth/refresh", json={"refresh_token": old_refresh_token}
-    )
-    second_refresh = client.post(
-        "/api/v1/auth/refresh", json={"refresh_token": old_refresh_token}
-    )
+    first_refresh = client.post("/api/v1/auth/refresh", json={"refresh_token": old_refresh_token})
+    second_refresh = client.post("/api/v1/auth/refresh", json={"refresh_token": old_refresh_token})
 
     assert first_refresh.status_code == 200
     assert first_refresh.json()["refresh_token"] != old_refresh_token

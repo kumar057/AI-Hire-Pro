@@ -1,4 +1,5 @@
 import { FiBookmark, FiExternalLink, FiSend, FiTrash2 } from 'react-icons/fi';
+import { Link } from 'react-router-dom';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -63,10 +64,15 @@ export function JobTable({ jobs, mode, onApply, onRemoveSaved }: JobTableProps) 
                         </Button>
                       </>
                     ) : (
-                      <Button size="sm" type="button" variant="outline">
+                      <Link
+                        className="inline-flex h-8 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-100 dark:border-white/10 dark:bg-slate-900 dark:text-white dark:hover:bg-white/10"
+                        rel="noopener noreferrer"
+                        target="_blank"
+                        to={`/candidate/dashboard/jobs/${job.id}`}
+                      >
                         <FiExternalLink aria-hidden="true" />
                         Details
-                      </Button>
+                      </Link>
                     )}
                   </div>
                 </td>

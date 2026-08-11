@@ -1,15 +1,9 @@
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-} from 'recharts';
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis } from 'recharts';
 
 import { CircularProgress } from '@/components/CandidateDashboard/CircularProgress';
+import { DashboardFeedWidgets } from '@/components/Notifications/DashboardFeedWidgets';
 import { DashboardMetricCard } from '@/components/CandidateDashboard/DashboardMetricCard';
 import { DashboardSkeleton } from '@/components/CandidateDashboard/DashboardSkeleton';
 import { QuickActions } from '@/components/CandidateDashboard/QuickActions';
@@ -52,8 +46,8 @@ export function CandidateDashboardHome() {
               Welcome back{user ? `, ${user.first_name}` : ''}.
             </h1>
             <p className="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
-              Track your job search foundation, profile strength, AI match signals, and next
-              actions from one clean candidate workspace.
+              Track your job search foundation, profile strength, AI match signals, and next actions
+              from one clean candidate workspace.
             </p>
           </div>
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5">
@@ -85,7 +79,10 @@ export function CandidateDashboardHome() {
           </div>
           <div className="mt-6 h-72">
             <ResponsiveContainer height="100%" width="100%">
-              <AreaChart data={CANDIDATE_MATCH_TREND} margin={{ bottom: 0, left: 0, right: 6, top: 8 }}>
+              <AreaChart
+                data={CANDIDATE_MATCH_TREND}
+                margin={{ bottom: 0, left: 0, right: 6, top: 8 }}
+              >
                 <defs>
                   <linearGradient id="candidateMatches" x1="0" x2="0" y1="0" y2="1">
                     <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.32} />
@@ -122,6 +119,7 @@ export function CandidateDashboardHome() {
       </div>
 
       <RecentActivityTimeline items={CANDIDATE_ACTIVITY} />
+      <DashboardFeedWidgets root="/candidate/dashboard" />
     </div>
   );
 }

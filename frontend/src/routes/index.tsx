@@ -83,8 +83,13 @@ const ApplicationHistoryPage = lazy(() =>
   })),
 );
 const NotificationsPage = lazy(() =>
-  import('@/pages/candidate/NotificationsPage').then((module) => ({
-    default: module.NotificationsPage,
+  import('@/pages/shared/NotificationCenterPage').then((module) => ({
+    default: module.NotificationCenterPage,
+  })),
+);
+const ActivityFeedPage = lazy(() =>
+  import('@/pages/shared/ActivityFeedPage').then((module) => ({
+    default: module.ActivityFeedPage,
   })),
 );
 const MessagesPage = lazy(() =>
@@ -126,7 +131,9 @@ const JobPreviewPage = lazy(() =>
   import('@/pages/company/JobPreviewPage').then((module) => ({ default: module.JobPreviewPage })),
 );
 const JobAnalyticsPage = lazy(() =>
-  import('@/pages/company/JobAnalyticsPage').then((module) => ({ default: module.JobAnalyticsPage })),
+  import('@/pages/company/JobAnalyticsPage').then((module) => ({
+    default: module.JobAnalyticsPage,
+  })),
 );
 const ApplicantsPage = lazy(() =>
   import('@/pages/company/ApplicantsPage').then((module) => ({
@@ -139,70 +146,140 @@ const CompanyApplicationDetailPage = lazy(() =>
   })),
 );
 const RecruiterPipelinePage = lazy(() =>
-  import('@/pages/company/RecruiterPipelinePage').then((module) => ({ default: module.RecruiterPipelinePage })),
+  import('@/pages/company/RecruiterPipelinePage').then((module) => ({
+    default: module.RecruiterPipelinePage,
+  })),
 );
 const RecruiterCandidatesPage = lazy(() =>
-  import('@/pages/company/RecruiterCandidatesPage').then((module) => ({ default: module.RecruiterCandidatesPage })),
+  import('@/pages/company/RecruiterCandidatesPage').then((module) => ({
+    default: module.RecruiterCandidatesPage,
+  })),
 );
 const RecruiterCandidateProfilePage = lazy(() =>
-  import('@/pages/company/RecruiterCandidateProfilePage').then((module) => ({ default: module.RecruiterCandidateProfilePage })),
+  import('@/pages/company/RecruiterCandidateProfilePage').then((module) => ({
+    default: module.RecruiterCandidateProfilePage,
+  })),
 );
-const RecruiterInterviewsPage = lazy(() => import('@/pages/company/RecruiterWorkspacePages').then((module) => ({ default: module.RecruiterInterviewsPage })));
-const HiringPipelinePage = lazy(() => import('@/pages/company/RecruiterWorkspacePages').then((module) => ({ default: module.HiringPipelinePage })));
-const RecruiterNotesPage = lazy(() => import('@/pages/company/RecruiterWorkspacePages').then((module) => ({ default: module.RecruiterNotesPage })));
-const TeamCollaborationPage = lazy(() => import('@/pages/company/RecruiterWorkspacePages').then((module) => ({ default: module.TeamCollaborationPage })));
-const HiringCalendarPage = lazy(() => import('@/pages/company/RecruiterWorkspacePages').then((module) => ({ default: module.HiringCalendarPage })));
+const RecruiterInterviewsPage = lazy(() =>
+  import('@/pages/company/RecruiterWorkspacePages').then((module) => ({
+    default: module.RecruiterInterviewsPage,
+  })),
+);
+const HiringPipelinePage = lazy(() =>
+  import('@/pages/company/RecruiterWorkspacePages').then((module) => ({
+    default: module.HiringPipelinePage,
+  })),
+);
+const RecruiterNotesPage = lazy(() =>
+  import('@/pages/company/RecruiterWorkspacePages').then((module) => ({
+    default: module.RecruiterNotesPage,
+  })),
+);
+const TeamCollaborationPage = lazy(() =>
+  import('@/pages/company/RecruiterWorkspacePages').then((module) => ({
+    default: module.TeamCollaborationPage,
+  })),
+);
+const HiringCalendarPage = lazy(() =>
+  import('@/pages/company/RecruiterWorkspacePages').then((module) => ({
+    default: module.HiringCalendarPage,
+  })),
+);
 const CompanyAnalyticsPage = lazy(() =>
   import('@/pages/company/CompanyAnalyticsPage').then((module) => ({
     default: module.CompanyAnalyticsPage,
   })),
 );
 const CompanyMessagesPage = lazy(() =>
-  import('@/pages/company/CompanyWorkspacePages').then((module) => ({ default: module.CompanyMessagesPage })),
+  import('@/pages/company/CompanyWorkspacePages').then((module) => ({
+    default: module.CompanyMessagesPage,
+  })),
 );
 const CompanyNotificationsPage = lazy(() =>
-  import('@/pages/company/CompanyWorkspacePages').then((module) => ({ default: module.CompanyNotificationsPage })),
+  import('@/pages/shared/NotificationCenterPage').then((module) => ({
+    default: module.NotificationCenterPage,
+  })),
 );
 const CompanySubscriptionPage = lazy(() =>
-  import('@/pages/company/CompanyWorkspacePages').then((module) => ({ default: module.CompanySubscriptionPage })),
+  import('@/pages/company/CompanyWorkspacePages').then((module) => ({
+    default: module.CompanySubscriptionPage,
+  })),
 );
 const CompanySettingsPage = lazy(() =>
-  import('@/pages/company/CompanyWorkspacePages').then((module) => ({ default: module.CompanySettingsPage })),
+  import('@/pages/company/CompanyWorkspacePages').then((module) => ({
+    default: module.CompanySettingsPage,
+  })),
 );
 const CompanyHelpPage = lazy(() =>
-  import('@/pages/company/CompanyWorkspacePages').then((module) => ({ default: module.CompanyHelpPage })),
+  import('@/pages/company/CompanyWorkspacePages').then((module) => ({
+    default: module.CompanyHelpPage,
+  })),
 );
 const AdminDashboardLayout = lazy(() =>
-  import('@/layouts/AdminDashboardLayout').then((module) => ({ default: module.AdminDashboardLayout })),
+  import('@/layouts/AdminDashboardLayout').then((module) => ({
+    default: module.AdminDashboardLayout,
+  })),
 );
 const AdminDashboardHome = lazy(() =>
-  import('@/pages/admin/AdminDashboardHome').then((module) => ({ default: module.AdminDashboardHome })),
+  import('@/pages/admin/AdminDashboardHome').then((module) => ({
+    default: module.AdminDashboardHome,
+  })),
 );
 const AdminManagementPage = lazy(() =>
-  import('@/pages/admin/AdminManagementPage').then((module) => ({ default: module.AdminManagementPage })),
+  import('@/pages/admin/AdminManagementPage').then((module) => ({
+    default: module.AdminManagementPage,
+  })),
 );
 const AdminJobModerationPage = lazy(() =>
-  import('@/pages/admin/AdminJobModerationPage').then((module) => ({ default: module.AdminJobModerationPage })),
+  import('@/pages/admin/AdminJobModerationPage').then((module) => ({
+    default: module.AdminJobModerationPage,
+  })),
 );
 const AdminJobReviewPage = lazy(() =>
-  import('@/pages/admin/AdminJobReviewPage').then((module) => ({ default: module.AdminJobReviewPage })),
+  import('@/pages/admin/AdminJobReviewPage').then((module) => ({
+    default: module.AdminJobReviewPage,
+  })),
 );
 const AdminJobReportsPage = lazy(() =>
-  import('@/pages/admin/AdminJobReportsPage').then((module) => ({ default: module.AdminJobReportsPage })),
+  import('@/pages/admin/AdminJobReportsPage').then((module) => ({
+    default: module.AdminJobReportsPage,
+  })),
 );
 const AdminAnalyticsPage = lazy(() =>
-  import('@/pages/admin/AdminAnalyticsPage').then((module) => ({ default: module.AdminAnalyticsPage })),
+  import('@/pages/admin/AdminAnalyticsPage').then((module) => ({
+    default: module.AdminAnalyticsPage,
+  })),
 );
 const AdminReportsPage = lazy(() =>
   import('@/pages/admin/AdminReportsPage').then((module) => ({ default: module.AdminReportsPage })),
 );
-const AdminActivityPage = lazy(() => import('@/pages/admin/AdminOperationsPages').then((module) => ({ default: module.AdminActivityPage })));
-const AdminAuditPage = lazy(() => import('@/pages/admin/AdminOperationsPages').then((module) => ({ default: module.AdminAuditPage })));
-const AdminSupportPage = lazy(() => import('@/pages/admin/AdminOperationsPages').then((module) => ({ default: module.AdminSupportPage })));
-const AdminNotificationsPage = lazy(() => import('@/pages/admin/AdminOperationsPages').then((module) => ({ default: module.AdminNotificationsPage })));
-const AdminFeedbackPage = lazy(() => import('@/pages/admin/AdminOperationsPages').then((module) => ({ default: module.AdminFeedbackPage })));
-const AdminAISettingsPage = lazy(() => import('@/pages/admin/AdminOperationsPages').then((module) => ({ default: module.AdminAISettingsPage })));
-const AdminSettingsPage = lazy(() => import('@/pages/admin/AdminOperationsPages').then((module) => ({ default: module.AdminSettingsPage })));
+const AdminActivityPage = ActivityFeedPage;
+const AdminAuditPage = lazy(() =>
+  import('@/pages/admin/AdminOperationsPages').then((module) => ({
+    default: module.AdminAuditPage,
+  })),
+);
+const AdminSupportPage = lazy(() =>
+  import('@/pages/admin/AdminOperationsPages').then((module) => ({
+    default: module.AdminSupportPage,
+  })),
+);
+const AdminNotificationsPage = CompanyNotificationsPage;
+const AdminFeedbackPage = lazy(() =>
+  import('@/pages/admin/AdminOperationsPages').then((module) => ({
+    default: module.AdminFeedbackPage,
+  })),
+);
+const AdminAISettingsPage = lazy(() =>
+  import('@/pages/admin/AdminOperationsPages').then((module) => ({
+    default: module.AdminAISettingsPage,
+  })),
+);
+const AdminSettingsPage = lazy(() =>
+  import('@/pages/admin/AdminOperationsPages').then((module) => ({
+    default: module.AdminSettingsPage,
+  })),
+);
 
 function PageLoader() {
   return (
@@ -243,8 +320,12 @@ export function AppRoutes() {
             <Route element={<SavedJobsPage />} path="saved-jobs" />
             <Route element={<AppliedJobsPage />} path="applied-jobs" />
             <Route element={<ApplicationHistoryPage />} path="application-history" />
-            <Route element={<CandidateApplicationDetailPage />} path="applications/:applicationId" />
+            <Route
+              element={<CandidateApplicationDetailPage />}
+              path="applications/:applicationId"
+            />
             <Route element={<NotificationsPage />} path="notifications" />
+            <Route element={<ActivityFeedPage />} path="activity" />
             <Route element={<MessagesPage />} path="messages" />
             <Route element={<SettingsPage />} path="settings" />
             <Route element={<HelpPage />} path="help" />
@@ -271,6 +352,7 @@ export function AppRoutes() {
             <Route element={<HiringCalendarPage />} path="hiring-calendar" />
             <Route element={<CompanyMessagesPage />} path="messages" />
             <Route element={<CompanyNotificationsPage />} path="notifications" />
+            <Route element={<ActivityFeedPage />} path="activity" />
             <Route element={<CompanyAnalyticsPage />} path="analytics" />
             <Route element={<CompanySubscriptionPage />} path="subscription" />
             <Route element={<CompanySettingsPage />} path="settings" />

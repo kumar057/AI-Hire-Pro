@@ -13,6 +13,7 @@ from app.routers import (
     company,
     health,
     jobs,
+    notifications,
     recruiter,
     users,
 )
@@ -50,6 +51,7 @@ def create_app() -> FastAPI:
     app.include_router(company.router, prefix=settings.API_PREFIX, tags=["company"])
     app.include_router(health.router, prefix=settings.API_PREFIX, tags=["health"])
     app.include_router(jobs.router, prefix=settings.API_PREFIX, tags=["jobs"])
+    app.include_router(notifications.router, prefix=settings.API_PREFIX, tags=["notifications"])
     app.include_router(recruiter.router, prefix=settings.API_PREFIX, tags=["recruiter"])
     app.include_router(users.router, prefix=settings.API_PREFIX, tags=["users"])
 
