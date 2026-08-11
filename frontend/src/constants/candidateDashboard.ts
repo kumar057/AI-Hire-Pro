@@ -1,5 +1,6 @@
 import {
   FiBell,
+  FiActivity,
   FiBookmark,
   FiBriefcase,
   FiClock,
@@ -81,6 +82,12 @@ export const CANDIDATE_NAV_ITEMS: CandidateNavItem[] = [
     label: 'Notifications',
     to: '/candidate/dashboard/notifications',
     icon: FiBell,
+  },
+  {
+    id: 'activity',
+    label: 'Activity Feed',
+    to: '/candidate/dashboard/activity',
+    icon: FiActivity,
   },
   {
     id: 'messages',
@@ -270,8 +277,7 @@ export const CANDIDATE_PLACEHOLDERS = {
   },
   notifications: {
     title: 'Notifications',
-    description:
-      'Candidate alerts, job-match updates, and account notifications will live here.',
+    description: 'Candidate alerts, job-match updates, and account notifications will live here.',
     icon: FiBell,
   },
   messages: {

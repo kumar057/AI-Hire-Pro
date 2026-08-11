@@ -1,53 +1,19 @@
-import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
+import { FiArrowRight, FiDownload, FiSearch } from 'react-icons/fi';
+import { Link } from 'react-router-dom';
 
-import { ApplicationTimeline } from '@/components/CandidateJobs/ApplicationTimeline';
+import { ApplicationStatusBadge } from '@/components/Applications/ApplicationStatusBadge';
+import { ApplicationTimeline } from '@/components/Applications/ApplicationTimeline';
 import { DashboardSkeleton } from '@/components/CandidateDashboard/DashboardSkeleton';
-import { jobService } from '@/services/jobService';
-import type { CandidateApplication } from '@/types/jobs';
+import { applicationService } from '@/services/applicationService';
+import type { JobApplication } from '@/types/applications';
 
 export function ApplicationHistoryPage() {
-  const [applications, setApplications] = useState<CandidateApplication[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    async function loadHistory() {
-      try {
-        const response = await jobService.getAppliedJobs();
-        setApplications(response.applications);
-      } catch {
-        toast.error('Unable to load application history.');
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    void loadHistory();
-  }, []);
-
-  if (isLoading) {
-    return <DashboardSkeleton />;
-  }
-
-  return (
-    <div className="mt-6 space-y-6">
-      <header className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-slate-900/70">
-        <p className="text-sm font-bold uppercase tracking-normal text-cyan-700 dark:text-cyan-300">
-          Application History
-        </p>
-        <h1 className="mt-2 text-3xl font-bold text-slate-950 dark:text-white">
-          Status timeline
-        </h1>
-        <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-300">
-          Review application history, timeline steps, and placeholder status movement for each
-          applied role.
-        </p>
-      </header>
-      <section className="grid gap-5 xl:grid-cols-2">
-        {applications.map((application) => (
-          <ApplicationTimeline application={application} key={application.id} />
-        ))}
-      </section>
-    </div>
-  );
+  const [applications, setApplications] = useState<JobApplication[]>([]); const [loading, setLoading] = useState(true); const [search, setSearch] = useState(''); const [expanded, setExpanded] = useState<string>();
+  useEffect(() => { void applicationService.getCandidateApplications().then((response) => setApplications(response.applications)).catch(() => toast.error('Unable to load application history.')).finally(() => setLoading(false)); }, []);
+  const visible = useMemo(() => applications.filter((application) => `${application.job.title} ${application.job.company} ${application.status}`.toLowerCase().includes(search.toLowerCase())), [applications, search]);
+  if (loading) return <DashboardSkeleton />;
+  return <div className="mt-6 space-y-5"><header className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-slate-900/70"><p className="text-sm font-bold uppercase text-cyan-700 dark:text-cyan-300">Application History</p><h1 className="mt-2 text-3xl font-bold">Track every application</h1><p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">Review submitted roles, current status, recent changes, and the complete hiring timeline.</p></header><label className="flex h-11 max-w-xl items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 dark:border-white/10 dark:bg-slate-900"><FiSearch className="text-cyan-600" /><input className="w-full bg-transparent text-sm outline-none" onChange={(event) => setSearch(event.target.value)} placeholder="Search applications..." value={search} /></label>{visible.length ? <section className="grid gap-4">{visible.map((application, index) => <motion.article animate={{ opacity: 1, y: 0 }} className="rounded-lg border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-slate-900/70" initial={{ opacity: 0, y: 10 }} key={application.id} transition={{ delay: index * 0.04 }}><div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center"><div><div className="flex flex-wrap items-center gap-3"><h2 className="text-lg font-bold">{application.job.title}</h2><ApplicationStatusBadge status={application.status} /></div><p className="mt-1 font-semibold text-cyan-700 dark:text-cyan-300">{application.job.company}</p><div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs font-semibold text-slate-500"><span>Applied: {application.applied_at ? new Date(application.applied_at).toLocaleDateString() : 'Draft'}</span><span>Updated: {new Date(application.updated_at).toLocaleDateString()}</span></div></div><div className="flex flex-wrap gap-2"><button className="flex h-10 items-center gap-2 rounded-md border border-slate-300 px-3 text-sm font-bold dark:border-white/15" onClick={() => toast.success('Application download placeholder prepared.')} type="button"><FiDownload />Download</button><button className="h-10 rounded-md border border-slate-300 px-3 text-sm font-bold dark:border-white/15" onClick={() => setExpanded(expanded === application.id ? undefined : application.id)} type="button">{expanded === application.id ? 'Hide timeline' : 'Timeline'}</button><Link className="flex h-10 items-center gap-2 rounded-md bg-cyan-600 px-3 text-sm font-bold text-white" to={`/candidate/dashboard/applications/${application.id}`}>Details<FiArrowRight /></Link></div></div>{expanded === application.id && <div className="mt-5 border-t border-slate-100 pt-5 dark:border-white/10"><ApplicationTimeline events={application.timeline} /></div>}</motion.article>)}</section> : <div className="rounded-lg border border-dashed border-slate-300 py-16 text-center dark:border-white/15"><h2 className="font-bold">No applications found</h2><p className="mt-2 text-sm text-slate-500">Your applications will appear here.</p></div>}</div>;
 }

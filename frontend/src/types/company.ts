@@ -45,6 +45,7 @@ export interface CompanyProfile {
 export interface CompanyJob {
   id?: string;
   title: string;
+  company: string;
   department: string;
   employment_type: string;
   experience_level: string;
@@ -52,16 +53,32 @@ export interface CompanyJob {
   location: string;
   work_mode: string;
   skills: string[];
+  preferred_skills: string[];
   education: string;
   description: string;
   responsibilities: string[];
   requirements: string[];
   benefits: string[];
+  openings: number;
+  category: string;
+  tags: string[];
   application_deadline: string;
-  status: string;
+  status: CompanyJobStatus;
   applications?: number;
   views?: number;
   created_at?: string;
+}
+
+export type CompanyJobStatus = 'archived' | 'closed' | 'draft' | 'published';
+
+export interface CompanyJobAnalytics {
+  job_id: string;
+  views: number;
+  applications: number;
+  shortlisted: number;
+  interviews: number;
+  conversion_rate: number;
+  trend: Array<{ label: string; views: number; applications: number }>;
 }
 
 export interface CompanyApplicant {
@@ -81,4 +98,3 @@ export interface CompanyAnalytics {
   hiring_funnel: Array<{ stage: string; value: number }>;
   job_performance: Array<{ name: string; views: number; applications: number }>;
 }
-

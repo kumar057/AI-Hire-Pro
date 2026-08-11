@@ -332,6 +332,23 @@ def test_jobs_placeholder_list_supports_search_and_pagination(client: TestClient
     assert all("React" in job["skills"] or "React" in job["title"] for job in payload["jobs"])
 
 
+def test_job_discovery_placeholder_endpoints(client: TestClient) -> None:
+    search = client.get("/api/v1/jobs/search", params={"q": "Python"})
+    detail = client.get("/api/v1/jobs/job-002")
+    featured = client.get("/api/v1/jobs/featured")
+    similar = client.get("/api/v1/jobs/similar/job-002")
+
+    assert search.status_code == 200
+    assert search.json()["total"] >= 1
+    assert detail.status_code == 200
+    assert detail.json()["id"] == "job-002"
+    assert detail.json()["responsibilities"]
+    assert featured.status_code == 200
+    assert all(job["is_featured"] for job in featured.json()["jobs"])
+    assert similar.status_code == 200
+    assert all(job["id"] != "job-002" for job in similar.json()["jobs"])
+
+
 def test_candidate_job_management_placeholder_endpoints(client: TestClient) -> None:
     auth_payload = register_candidate(client)
     headers = {"Authorization": f"Bearer {auth_payload['access_token']}"}
@@ -354,6 +371,166 @@ def test_candidate_job_management_placeholder_endpoints(client: TestClient) -> N
     assert save_job.json()["status"] == "saved"
     assert apply_job.status_code == 200
     assert apply_job.json()["status"] == "applied"
+
+
+def test_candidate_application_workflow(client: TestClient) -> None:
+    auth_payload = register_candidate(client)
+    headers = {"Authorization": f"Bearer {auth_payload['access_token']}"}
+    payload = {
+        "job_id": "job-002",
+        "resume_id": "resume-current",
+        "cover_letter": "I am excited to contribute to this role.",
+        "status": "Submitted",
+        "quick_apply": False,
+    }
+
+    created = client.post("/api/v1/applications", headers=headers, json=payload)
+    applications = client.get("/api/v1/candidate/applications", headers=headers)
+    detail = client.get("/api/v1/applications/application-1", headers=headers)
+    withdrawn = client.delete("/api/v1/applications/application-1", headers=headers)
+    forbidden_status = client.patch(
+        "/api/v1/applications/application-1/status",
+        headers=headers,
+        json={"status": "Shortlisted", "note": ""},
+    )
+
+    assert created.status_code == 201
+    assert created.json()["status"] == "Submitted"
+    assert applications.status_code == 200
+    assert applications.json()["total"] == 4
+    assert all(
+        item["candidate_id"] == detail.json()["candidate_id"]
+        for item in applications.json()["applications"]
+    )
+    assert detail.status_code == 200
+    assert withdrawn.status_code == 200
+    assert withdrawn.json()["status"] == "Withdrawn"
+    assert forbidden_status.status_code == 403
+
+
+def test_company_application_management_and_candidate_mutation_denial(
+    client: TestClient,
+) -> None:
+    auth_payload = register_company(client)
+    headers = {"Authorization": f"Bearer {auth_payload['access_token']}"}
+
+    applications = client.get("/api/v1/company/applications", headers=headers)
+    detail = client.get("/api/v1/applications/application-2", headers=headers)
+    updated = client.patch(
+        "/api/v1/applications/application-2/status",
+        headers=headers,
+        json={"status": "Shortlisted", "note": "Strong technical profile."},
+    )
+    forbidden_create = client.post(
+        "/api/v1/applications",
+        headers=headers,
+        json={
+            "job_id": "job-002",
+            "resume_id": "resume-current",
+            "cover_letter": "",
+            "status": "Submitted",
+            "quick_apply": True,
+        },
+    )
+    forbidden_withdraw = client.delete("/api/v1/applications/application-2", headers=headers)
+
+    assert applications.status_code == 200
+    assert applications.json()["total"] == 4
+    assert detail.status_code == 200
+    assert updated.status_code == 200
+    assert updated.json()["status"] == "Shortlisted"
+    assert updated.json()["timeline"][-1]["description"] == "Strong technical profile."
+    assert forbidden_create.status_code == 403
+    assert forbidden_withdraw.status_code == 403
+
+
+def test_admin_has_read_only_application_access(client: TestClient) -> None:
+    asyncio.run(seed_admin(client))
+    login = client.post(
+        "/api/v1/auth/login",
+        json={"email": "admin@example.com", "password": "AdminSecure123!"},
+    )
+    headers = {"Authorization": f"Bearer {login.json()['access_token']}"}
+
+    detail = client.get("/api/v1/applications/application-1", headers=headers)
+    forbidden_status = client.patch(
+        "/api/v1/applications/application-1/status",
+        headers=headers,
+        json={"status": "Rejected", "note": ""},
+    )
+    forbidden_withdraw = client.delete("/api/v1/applications/application-1", headers=headers)
+
+    assert detail.status_code == 200
+    assert forbidden_status.status_code == 403
+    assert forbidden_withdraw.status_code == 403
+
+
+def test_company_recruiter_candidate_workflow(client: TestClient) -> None:
+    auth_payload = register_company(client)
+    headers = {"Authorization": f"Bearer {auth_payload['access_token']}"}
+
+    candidates = client.get("/api/v1/company/candidates", headers=headers)
+    detail = client.get("/api/v1/company/candidates/candidate-1", headers=headers)
+    moved = client.patch(
+        "/api/v1/company/candidates/candidate-1/status",
+        headers=headers,
+        json={"status": "Screening"},
+    )
+    noted = client.post(
+        "/api/v1/company/candidates/candidate-1/notes",
+        headers=headers,
+        json={"content": "Strong architecture discussion."},
+    )
+    rated = client.post(
+        "/api/v1/company/candidates/candidate-1/rating",
+        headers=headers,
+        json={"rating": 5},
+    )
+
+    assert candidates.status_code == 200
+    assert candidates.json()["total"] == 9
+    assert detail.status_code == 200
+    assert detail.json()["education"]
+    assert moved.json()["candidate"]["status"] == "Screening"
+    assert noted.json()["candidate"]["notes"][-1]["content"] == ("Strong architecture discussion.")
+    assert rated.json()["candidate"]["rating"] == 5
+
+
+def test_candidate_cannot_access_recruiter_candidates(client: TestClient) -> None:
+    auth_payload = register_candidate(client)
+    response = client.get(
+        "/api/v1/company/candidates",
+        headers={"Authorization": f"Bearer {auth_payload['access_token']}"},
+    )
+
+    assert response.status_code == 403
+
+
+def test_admin_recruiter_candidate_access_is_read_only(client: TestClient) -> None:
+    asyncio.run(seed_admin(client))
+    login = client.post(
+        "/api/v1/auth/login",
+        json={"email": "admin@example.com", "password": "AdminSecure123!"},
+    )
+    headers = {"Authorization": f"Bearer {login.json()['access_token']}"}
+
+    candidates = client.get("/api/v1/company/candidates", headers=headers)
+    detail = client.get("/api/v1/company/candidates/candidate-1", headers=headers)
+    forbidden_move = client.patch(
+        "/api/v1/company/candidates/candidate-1/status",
+        headers=headers,
+        json={"status": "Rejected"},
+    )
+    forbidden_note = client.post(
+        "/api/v1/company/candidates/candidate-1/notes",
+        headers=headers,
+        json={"content": "Admin note"},
+    )
+
+    assert candidates.status_code == 200
+    assert detail.status_code == 200
+    assert forbidden_move.status_code == 403
+    assert forbidden_note.status_code == 403
 
 
 def test_candidate_resume_analysis_placeholder_endpoints(client: TestClient) -> None:
@@ -420,17 +597,33 @@ def test_company_job_placeholder_mutations(client: TestClient) -> None:
         "requirements": ["Five years of experience"],
         "benefits": ["Remote-first"],
         "application_deadline": "2026-09-30",
-        "status": "active",
+        "status": "published",
     }
 
     created = client.post("/api/v1/company/jobs", headers=headers, json=payload)
     updated = client.put("/api/v1/company/jobs/job-1", headers=headers, json=payload)
     deleted = client.delete("/api/v1/company/jobs/job-1", headers=headers)
+    detail = client.get("/api/v1/company/jobs/company-job-1", headers=headers)
+    published = client.patch(
+        "/api/v1/company/jobs/company-job-3/publish",
+        headers=headers,
+        json={"published": True},
+    )
+    unpublished = client.patch(
+        "/api/v1/company/jobs/company-job-1/publish",
+        headers=headers,
+        json={"published": False},
+    )
+    archived = client.patch("/api/v1/company/jobs/company-job-1/archive", headers=headers)
 
     assert created.status_code == 201
     assert updated.status_code == 200
     assert deleted.status_code == 200
     assert deleted.json()["status"] == "deleted"
+    assert detail.status_code == 200
+    assert published.json()["status"] == "published"
+    assert unpublished.json()["status"] == "draft"
+    assert archived.json()["status"] == "archived"
 
 
 def test_candidate_cannot_access_company_dashboard(client: TestClient) -> None:
@@ -438,6 +631,30 @@ def test_candidate_cannot_access_company_dashboard(client: TestClient) -> None:
     response = client.get(
         "/api/v1/company/dashboard",
         headers={"Authorization": f"Bearer {auth_payload['access_token']}"},
+    )
+
+    assert response.status_code == 403
+
+
+def test_candidate_cannot_access_company_jobs(client: TestClient) -> None:
+    auth_payload = register_candidate(client)
+    response = client.get(
+        "/api/v1/company/jobs",
+        headers={"Authorization": f"Bearer {auth_payload['access_token']}"},
+    )
+
+    assert response.status_code == 403
+
+
+def test_admin_cannot_access_company_jobs(client: TestClient) -> None:
+    asyncio.run(seed_admin(client))
+    login = client.post(
+        "/api/v1/auth/login",
+        json={"email": "admin@example.com", "password": "AdminSecure123!"},
+    )
+    response = client.get(
+        "/api/v1/company/jobs",
+        headers={"Authorization": f"Bearer {login.json()['access_token']}"},
     )
 
     assert response.status_code == 403
@@ -468,6 +685,145 @@ def test_admin_dashboard_placeholder_endpoints(client: TestClient) -> None:
     assert reports.status_code == 200
 
 
+def test_admin_job_moderation_workflow(client: TestClient) -> None:
+    asyncio.run(seed_admin(client))
+    login = client.post(
+        "/api/v1/auth/login",
+        json={"email": "admin@example.com", "password": "AdminSecure123!"},
+    )
+    headers = {"Authorization": f"Bearer {login.json()['access_token']}"}
+
+    jobs = client.get("/api/v1/admin/jobs", headers=headers)
+    detail = client.get("/api/v1/admin/jobs/mod-job-1", headers=headers)
+    approved = client.patch("/api/v1/admin/jobs/mod-job-1/approve", headers=headers)
+    rejected = client.patch(
+        "/api/v1/admin/jobs/mod-job-1/reject",
+        headers=headers,
+        json={"reason": "Policy mismatch"},
+    )
+    suspended = client.patch(
+        "/api/v1/admin/jobs/mod-job-1/suspend",
+        headers=headers,
+        json={"reason": "Company investigation"},
+    )
+    archived = client.patch("/api/v1/admin/jobs/mod-job-1/archive", headers=headers)
+    restored = client.patch("/api/v1/admin/jobs/mod-job-6/restore", headers=headers)
+    noted = client.post(
+        "/api/v1/admin/jobs/mod-job-1/notes",
+        headers=headers,
+        json={"content": "Verified salary and company details."},
+    )
+    reports = client.get("/api/v1/admin/job-reports", headers=headers)
+
+    assert jobs.status_code == 200
+    assert jobs.json()["total"] == 7
+    assert detail.status_code == 200
+    assert approved.json()["status"] == "Approved"
+    assert rejected.json()["status"] == "Rejected"
+    assert suspended.json()["status"] == "Suspended"
+    assert archived.json()["status"] == "Archived"
+    assert restored.json()["status"] == "Approved"
+    assert noted.json()["moderation_notes"][-1]["content"] == (
+        "Verified salary and company details."
+    )
+    assert reports.status_code == 200
+    assert reports.json()["reports"][0]["reason"]
+
+
+def test_non_admin_roles_cannot_access_job_moderation(client: TestClient) -> None:
+    candidate = register_candidate(client)
+    company = register_company(client)
+
+    candidate_response = client.get(
+        "/api/v1/admin/jobs",
+        headers={"Authorization": f"Bearer {candidate['access_token']}"},
+    )
+    company_response = client.get(
+        "/api/v1/admin/job-reports",
+        headers={"Authorization": f"Bearer {company['access_token']}"},
+    )
+
+    assert candidate_response.status_code == 403
+    assert company_response.status_code == 403
+
+
+def test_notification_center_and_activity_feed(client: TestClient) -> None:
+    auth = register_candidate(client)
+    headers = {"Authorization": f"Bearer {auth['access_token']}"}
+
+    notifications = client.get(
+        "/api/v1/notifications",
+        params={"read": "false", "page_size": 2},
+        headers=headers,
+    )
+    assert notifications.status_code == 200
+    payload = notifications.json()
+    assert len(payload["notifications"]) == 2
+    assert payload["unread_count"] >= 2
+    assert all(not item["is_read"] for item in payload["notifications"])
+    notification_id = payload["notifications"][0]["id"]
+
+    assert (
+        client.patch(
+            f"/api/v1/notifications/{notification_id}/read",
+            headers=headers,
+        ).status_code
+        == 200
+    )
+    assert client.patch("/api/v1/notifications/read-all", headers=headers).status_code == 200
+    assert (
+        client.delete(
+            f"/api/v1/notifications/{notification_id}",
+            headers=headers,
+        ).status_code
+        == 200
+    )
+    assert client.delete("/api/v1/notifications", headers=headers).status_code == 200
+
+    activity = client.get("/api/v1/activity-feed", headers=headers)
+    assert activity.status_code == 200
+    assert {item["category"] for item in activity.json()["activities"]} >= {
+        "candidate",
+        "recruiter",
+        "admin",
+        "system",
+    }
+
+
+def test_notifications_enforce_owner_scope(client: TestClient) -> None:
+    candidate = register_candidate(client)
+    company = register_company(client)
+    company_headers = {"Authorization": f"Bearer {company['access_token']}"}
+    candidate_id = client.get(
+        "/api/v1/notifications",
+        headers={"Authorization": f"Bearer {candidate['access_token']}"},
+    ).json()["notifications"][0]["id"]
+
+    response = client.patch(
+        f"/api/v1/notifications/{candidate_id}/read",
+        headers=company_headers,
+    )
+    assert response.status_code == 403
+
+
+def test_admin_receives_system_notifications(client: TestClient) -> None:
+    asyncio.run(seed_admin(client))
+    login = client.post(
+        "/api/v1/auth/login",
+        json={"email": "admin@example.com", "password": "AdminSecure123!"},
+    )
+    headers = {"Authorization": f"Bearer {login.json()['access_token']}"}
+    response = client.get(
+        "/api/v1/notifications",
+        params={"type": "system"},
+        headers=headers,
+    )
+
+    assert response.status_code == 200
+    assert response.json()["notifications"]
+    assert all(item["type"] == "system" for item in response.json()["notifications"])
+
+
 def test_candidate_cannot_access_admin_dashboard(client: TestClient) -> None:
     auth_payload = register_candidate(client)
     response = client.get(
@@ -492,12 +848,8 @@ def test_refresh_token_rotation_revokes_old_token(client: TestClient) -> None:
     auth_payload = register_candidate(client)
     old_refresh_token = auth_payload["refresh_token"]
 
-    first_refresh = client.post(
-        "/api/v1/auth/refresh", json={"refresh_token": old_refresh_token}
-    )
-    second_refresh = client.post(
-        "/api/v1/auth/refresh", json={"refresh_token": old_refresh_token}
-    )
+    first_refresh = client.post("/api/v1/auth/refresh", json={"refresh_token": old_refresh_token})
+    second_refresh = client.post("/api/v1/auth/refresh", json={"refresh_token": old_refresh_token})
 
     assert first_refresh.status_code == 200
     assert first_refresh.json()["refresh_token"] != old_refresh_token

@@ -16,6 +16,27 @@ class JobPosting(BaseModel):
     is_saved: bool = False
     is_applied: bool = False
     description: str
+    company_logo: str = ""
+    country: str = "United States"
+    state: str = ""
+    city: str = ""
+    department: str = "Engineering"
+    industry: str = "Technology"
+    education: str = "Bachelor's degree or equivalent experience"
+    notice_period: str = "30 days"
+    company_size: str = "201-500"
+    job_status: str = "Open"
+    salary_min: int = 0
+    salary_max: int = 0
+    applicants: int = 0
+    is_featured: bool = False
+    responsibilities: list[str] = Field(default_factory=list)
+    requirements: list[str] = Field(default_factory=list)
+    benefits: list[str] = Field(default_factory=list)
+    company_overview: str = ""
+    company_rating: float = Field(default=4.5, ge=0, le=5)
+    office_location: str = ""
+    company_photos: list[str] = Field(default_factory=list)
 
 
 class JobListResponse(BaseModel):

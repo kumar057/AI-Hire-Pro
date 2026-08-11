@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.auth.dependencies import require_roles
 from app.models.user import User, UserRole
@@ -8,6 +8,17 @@ from app.schemas.admin import (
     AdminCollectionResponse,
     AdminDashboardResponse,
     AdminReportsResponse,
+)
+from app.schemas.moderation import (
+    CompanyViolation,
+    JobReport,
+    JobReportList,
+    ModerationActionPayload,
+    ModerationHistoryItem,
+    ModerationJob,
+    ModerationJobList,
+    ModerationNote,
+    ModerationNotePayload,
 )
 
 router = APIRouter(prefix="/admin")
@@ -155,50 +166,106 @@ async def get_admin_companies(current_user: AdminUser) -> AdminCollectionRespons
 
 
 @router.get("/jobs")
-async def get_admin_jobs(current_user: AdminUser) -> AdminCollectionResponse:
-    items = [
-        {
-            "id": "job-1",
-            "title": "Senior Frontend Engineer",
-            "company": "Northstar Labs",
-            "applications": 142,
-            "status": "Active",
-            "posted": "Jul 18, 2026",
-        },
-        {
-            "id": "job-2",
-            "title": "Product Designer",
-            "company": "SignalWorks",
-            "applications": 98,
-            "status": "Active",
-            "posted": "Jul 22, 2026",
-        },
-        {
-            "id": "job-3",
-            "title": "Backend Engineer",
-            "company": "Vertex Cloud",
-            "applications": 121,
-            "status": "Review",
-            "posted": "Aug 1, 2026",
-        },
-        {
-            "id": "job-4",
-            "title": "Data Analyst",
-            "company": "Lumina Health",
-            "applications": 74,
-            "status": "Closed",
-            "posted": "Jun 30, 2026",
-        },
-        {
-            "id": "job-5",
-            "title": "Platform Engineer",
-            "company": "Northstar Labs",
-            "applications": 88,
-            "status": "Active",
-            "posted": "Jul 25, 2026",
-        },
+async def get_admin_jobs(current_user: AdminUser) -> ModerationJobList:
+    jobs = _moderation_jobs()
+    counts = {status: sum(job.status == status for job in jobs) for status in [
+        "Pending", "Approved", "Rejected", "Flagged", "Suspended", "Archived", "Deleted"
+    ]}
+    return ModerationJobList(jobs=jobs, total=len(jobs), status_counts=counts)
+
+
+@router.get("/jobs/{job_id}")
+async def get_admin_job(job_id: str, current_user: AdminUser) -> ModerationJob:
+    job = next((item for item in _moderation_jobs() if item.id == job_id), None)
+    if job is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found")
+    return job
+
+
+@router.patch("/jobs/{job_id}/approve")
+async def approve_admin_job(job_id: str, current_user: AdminUser) -> ModerationJob:
+    return (await get_admin_job(job_id, current_user)).model_copy(update={"status": "Approved"})
+
+
+@router.patch("/jobs/{job_id}/reject")
+async def reject_admin_job(
+    job_id: str, payload: ModerationActionPayload, current_user: AdminUser
+) -> ModerationJob:
+    return (await get_admin_job(job_id, current_user)).model_copy(update={"status": "Rejected"})
+
+
+@router.patch("/jobs/{job_id}/suspend")
+async def suspend_admin_job(
+    job_id: str, payload: ModerationActionPayload, current_user: AdminUser
+) -> ModerationJob:
+    return (await get_admin_job(job_id, current_user)).model_copy(update={"status": "Suspended"})
+
+
+@router.patch("/jobs/{job_id}/archive")
+async def archive_admin_job(job_id: str, current_user: AdminUser) -> ModerationJob:
+    return (await get_admin_job(job_id, current_user)).model_copy(update={"status": "Archived"})
+
+
+@router.patch("/jobs/{job_id}/restore")
+async def restore_admin_job(job_id: str, current_user: AdminUser) -> ModerationJob:
+    return (await get_admin_job(job_id, current_user)).model_copy(update={"status": "Approved"})
+
+
+@router.patch("/jobs/{job_id}/request-changes")
+async def request_admin_job_changes(
+    job_id: str, payload: ModerationActionPayload, current_user: AdminUser
+) -> ModerationJob:
+    return (await get_admin_job(job_id, current_user)).model_copy(update={"status": "Pending"})
+
+
+@router.post("/jobs/{job_id}/notes")
+async def add_admin_job_note(
+    job_id: str, payload: ModerationNotePayload, current_user: AdminUser
+) -> ModerationJob:
+    job = await get_admin_job(job_id, current_user)
+    note = ModerationNote(
+        id=f"note-{job_id}-new",
+        author="Platform Moderator",
+        content=payload.content,
+        created_at="2026-08-03T16:00:00+00:00",
+    )
+    return job.model_copy(update={"moderation_notes": [*job.moderation_notes, note]})
+
+
+@router.get("/job-reports")
+async def get_admin_job_reports(current_user: AdminUser) -> JobReportList:
+    reports = _job_reports()
+    return JobReportList(reports=reports, total=len(reports))
+
+
+@router.get("/company-violations")
+async def get_company_violations(current_user: AdminUser) -> list[CompanyViolation]:
+    return [
+        CompanyViolation(
+            id="vio-1", company="Vertex Cloud", violation="Misleading salary range",
+            severity="High", date="2026-08-01", status="Open",
+        ),
+        CompanyViolation(
+            id="vio-2", company="Atlas Retail", violation="Duplicate job postings",
+            severity="Medium", date="2026-07-29", status="Investigating",
+        ),
     ]
-    return AdminCollectionResponse(items=items, total=len(items))
+
+
+@router.get("/moderation-history")
+async def get_moderation_history(current_user: AdminUser) -> list[ModerationHistoryItem]:
+    return [
+        ModerationHistoryItem(
+            id="hist-1", job_id="mod-job-2", job_title="Product Designer",
+            action="Approved", moderator="Alex Morgan",
+            occurred_at="2026-08-03T11:30:00Z", note="Policy checks passed.",
+        ),
+        ModerationHistoryItem(
+            id="hist-2", job_id="mod-job-4", job_title="Data Analyst",
+            action="Archived", moderator="Sam Rivera",
+            occurred_at="2026-08-02T14:15:00Z", note="Posting expired.",
+        ),
+    ]
 
 
 @router.get("/applications")
@@ -273,3 +340,63 @@ async def get_admin_reports(current_user: AdminUser) -> AdminReportsResponse:
 def _series(key: str, values: list[int]) -> list[dict[str, int | str]]:
     labels = ["Mar", "Apr", "May", "Jun", "Jul", "Aug"]
     return [{"label": label, key: value} for label, value in zip(labels, values, strict=True)]
+
+
+def _moderation_jobs() -> list[ModerationJob]:
+    statuses = [
+        "Pending", "Approved", "Rejected", "Flagged", "Suspended", "Archived", "Deleted",
+    ]
+    titles = [
+        "Senior Frontend Engineer", "Product Designer", "Backend Engineer",
+        "Data Analyst", "Platform Engineer", "Growth Lead", "Cloud Architect",
+    ]
+    companies = [
+        "Northstar Labs", "SignalWorks", "Vertex Cloud", "Lumina Health",
+        "Atlas Retail", "BrightHire", "CloudNest",
+    ]
+    return [
+        ModerationJob(
+            id=f"mod-job-{index + 1}", title=titles[index], company=companies[index],
+            company_id=f"company-{index + 1}", company_verified=index not in {2, 4},
+            company_violations=2 if index in {2, 4} else 0,
+            category="Engineering" if index != 1 else "Design",
+            location="Remote, United States", employment_type="Full-time",
+            salary="$130k - $180k", skills=["React", "TypeScript", "Communication"],
+            description=(
+                "Build reliable products and collaborate with a cross-functional enterprise team."
+            ),
+            benefits=["Health coverage", "Learning budget", "Flexible leave"],
+            posting_date=f"2026-07-{20 + index:02d}", status=statuses[index],
+            report_count=[1, 0, 3, 5, 2, 0, 1][index], bookmarked=index in {0, 3},
+            moderation_notes=[ModerationNote(
+                id=f"note-{index + 1}", author="Alex Morgan",
+                content="Initial policy review completed.",
+                created_at="2026-08-01T10:00:00Z",
+            )],
+        )
+        for index in range(len(statuses))
+    ]
+
+
+def _job_reports() -> list[JobReport]:
+    return [
+        JobReport(
+            id="job-report-1", job_id="mod-job-4", job_title="Data Analyst",
+            company="Lumina Health", reason="Potentially misleading compensation",
+            reporter="candidate@example.com", report_date="2026-08-02",
+            status="Investigating", resolution="Pending moderator review",
+        ),
+        JobReport(
+            id="job-report-2", job_id="mod-job-3", job_title="Backend Engineer",
+            company="Vertex Cloud", reason="Duplicate and expired listing",
+            reporter="user@example.com", report_date="2026-08-01",
+            status="Open", resolution="Not resolved",
+        ),
+        JobReport(
+            id="job-report-3", job_id="mod-job-1",
+            job_title="Senior Frontend Engineer", company="Northstar Labs",
+            reason="Location details unclear", reporter="member@example.com",
+            report_date="2026-07-30", status="Resolved",
+            resolution="Company clarified remote eligibility",
+        ),
+    ]

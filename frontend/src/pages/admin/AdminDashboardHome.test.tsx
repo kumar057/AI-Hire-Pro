@@ -1,4 +1,5 @@
 import { cloneElement, type ReactElement } from 'react';
+import { MemoryRouter } from 'react-router-dom';
 import { render, screen, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
 
@@ -50,7 +51,11 @@ describe('AdminDashboardHome', () => {
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const warningSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
 
-    render(<AdminDashboardHome />);
+    render(
+      <MemoryRouter>
+        <AdminDashboardHome />
+      </MemoryRouter>,
+    );
 
     expect(screen.getByRole('status', { name: 'Loading admin dashboard' })).toBeInTheDocument();
     expect(await screen.findByText('Platform overview')).toBeInTheDocument();

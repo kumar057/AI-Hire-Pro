@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { FiBriefcase, FiChevronLeft, FiChevronRight, FiLogOut, FiX } from 'react-icons/fi';
+import { FiChevronLeft, FiChevronRight, FiLogOut, FiX } from 'react-icons/fi';
 import { NavLink } from 'react-router-dom';
 
 import { CANDIDATE_NAV_ITEMS } from '@/constants/candidateDashboard';
@@ -60,9 +60,7 @@ export function CandidateSidebar({
             onClick={onClose}
             to="/candidate/dashboard"
           >
-            <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-slate-950 text-white shadow-lg shadow-cyan-950/15 dark:bg-white dark:text-slate-950">
-              <FiBriefcase aria-hidden="true" />
-            </span>
+            <BrandLogo className="size-10 shadow-lg shadow-cyan-950/15" />
             <span
               className={`truncate text-lg font-bold text-slate-950 dark:text-white ${
                 collapsed ? 'lg:sr-only' : ''
@@ -134,3 +132,4 @@ export function CandidateSidebar({
     </>
   );
 }
+import { BrandLogo } from '@/components/BrandLogo';
