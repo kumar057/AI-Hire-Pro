@@ -15,6 +15,7 @@ from app.routers import (
     jobs,
     notifications,
     recruiter,
+    resume,
     users,
 )
 from app.utils.logging import configure_logging
@@ -53,6 +54,7 @@ def create_app() -> FastAPI:
     app.include_router(jobs.router, prefix=settings.API_PREFIX, tags=["jobs"])
     app.include_router(notifications.router, prefix=settings.API_PREFIX, tags=["notifications"])
     app.include_router(recruiter.router, prefix=settings.API_PREFIX, tags=["recruiter"])
+    app.include_router(resume.router, prefix=settings.API_PREFIX, tags=["resume"])
     app.include_router(users.router, prefix=settings.API_PREFIX, tags=["users"])
 
     return app
